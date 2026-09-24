@@ -9,7 +9,8 @@
     "stop": "bash scripts/stop-servers.sh",
     "restart": "bash scripts/restart-servers.sh",
     "dev:server": "cd server && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev"
+    "dev:frontend": "cd frontend && npm run dev",
+    "test": "npm --prefix server test"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

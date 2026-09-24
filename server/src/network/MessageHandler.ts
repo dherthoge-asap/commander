@@ -8,6 +8,7 @@ import type { GameMessage } from '../game/types.js';
 import { RoomManager } from '../game/RoomManager.js';
 import { STARTING_POSITIONS } from '../game/constants.js';
 import type { Movement } from '../game/types.js';
+import { normalizeMovement } from '../game/CommandProcessor.js';
 
 export class MessageHandler {
   private roomManager: RoomManager;
@@ -210,6 +211,7 @@ export class MessageHandler {
 
     // Start game loop when both players have joined
     if (room.playerCount === 2) {
+      room.status = 'playing';
       console.log(`🎮 Both players in room ${roomCode} - starting game loop!`);
       this.onStartGameLoop(roomCode);
     }
@@ -280,7 +282,13 @@ export class MessageHandler {
    */
   private handleQueueMove(ws: WebSocket, payload: { roomCode: string; pieceId: number; direction: 'up' | 'down' | 'left' | 'right'; distance: number; targetRound?: number }): void {
     const playerId = (ws as any)._playerId;
-    const { roomCode, pieceId, direction, distance, targetRound } = payload;
+    const { roomCode, targetRound } = payload;
+    const valid = normalizeMovement(payload);
+    if (!valid) {
+      console.log(`❌ Rejected invalid move from ${playerId}:`, payload);
+      return;
+    }
+    const { pieceId, direction, distance } = valid;
 
     const room = this.roomManager.getRoom(roomCode);
     if (!room) {
@@ -302,7 +310,7 @@ export class MessageHandler {
     }
 
     // Default to current round if not specified (executes at end of this round)
-    const round = targetRound || room.gameState.round;
+    const round = this.resolveTargetRound(targetRound, room.gameState.round);
 
     // Initialize command queue for this round if it doesn't exist
     if (!room.gameState.commandQueue[round]) {
@@ -337,7 +345,13 @@ export class MessageHandler {
    * Handle MCP queue move - auto-detects active human game
    */
   private handleMcpQueueMove(ws: WebSocket, payload: { pieceId: number; direction: 'up' | 'down' | 'left' | 'right'; distance: number; targetRound?: number }): void {
-    const { pieceId, direction, distance, targetRound } = payload;
+    const { targetRound } = payload;
+    const valid = normalizeMovement(payload);
+    if (!valid) {
+      console.log('❌ MCP: Rejected invalid move:', payload);
+      return;
+    }
+    const { pieceId, direction, distance } = valid;
 
     // Find the active human game
     const allRooms = this.roomManager.getAllRooms();
@@ -366,7 +380,7 @@ export class MessageHandler {
     }
 
     // Default to current round if not specified
-    const round = targetRound || room.gameState.round;
+    const round = this.resolveTargetRound(targetRound, room.gameState.round);
 
     // Initialize command queue for this round if it doesn't exist
     if (!room.gameState.commandQueue[round]) {
@@ -395,6 +409,18 @@ export class MessageHandler {
       type: 'gameState',
       payload: room.gameState
     });
+  }
+
+  /**
+   * Pick the round a move is queued for: the requested round if it's current or soon, else the current round.
+   * A past round would never execute and would sit in the queue forever.
+   */
+  private resolveTargetRound(targetRound: unknown, currentRound: number): number {
+    const requested = Number(targetRound);
+    if (Number.isInteger(requested) && requested >= currentRound && requested <= currentRound + 10) {
+      return requested;
+    }
+    return currentRound;
   }
 
   /**

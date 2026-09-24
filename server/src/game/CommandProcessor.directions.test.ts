@@ -158,11 +158,11 @@ test('Movement Direction - RIGHT increases X coordinate', () => {
 // BOUNDARY TESTS
 // ============================================================================
 
-test('Movement stops at board boundaries - UP at y=10', () => {
+test('Movement stops at board boundaries - UP at y=12', () => {
   const processor = new CommandProcessor();
   const gameState = createGameState();
 
-  // Blue P2 at (5,8) moves UP 5 (would go to y=13, but should stop at y=10)
+  // Blue P2 at (5,8) moves UP 5 (would go to y=13, but should stop at y=12)
   const command: Movement = { pieceId: 2, direction: 'up', distance: 5 };
   const paths = processor.executeMovements(gameState, {
     playerA: [command],
@@ -174,7 +174,7 @@ test('Movement stops at board boundaries - UP at y=10', () => {
 
   console.log(`✓ UP boundary: (5,8) up 5 → stopped at (${bluePath.finalPosition.x},${bluePath.finalPosition.y})`);
 
-  assert.strictEqual(bluePath.finalPosition.y, 10, 'Should stop at y=10 boundary');
+  assert.strictEqual(bluePath.finalPosition.y, 12, 'Should stop at y=12 boundary');
 });
 
 test('Movement stops at board boundaries - DOWN at y=0', () => {
@@ -215,12 +215,12 @@ test('Movement stops at board boundaries - LEFT at x=0', () => {
   assert.strictEqual(bluePath.finalPosition.x, 0, 'Should stop at x=0 boundary');
 });
 
-test('Movement stops at board boundaries - RIGHT at x=10', () => {
+test('Movement stops at board boundaries - RIGHT at x=18', () => {
   const processor = new CommandProcessor();
   const gameState = createGameState();
 
-  // Blue P1 at (5,5) moves RIGHT 7 (would go to x=12, but should stop at x=10)
-  const command: Movement = { pieceId: 1, direction: 'right', distance: 7 };
+  // Blue P1 at (5,5) moves RIGHT 15 (would go to x=20, but should stop at x=18)
+  const command: Movement = { pieceId: 1, direction: 'right', distance: 15 };
   const paths = processor.executeMovements(gameState, {
     playerA: [command],
     playerB: []
@@ -229,9 +229,9 @@ test('Movement stops at board boundaries - RIGHT at x=10', () => {
   const bluePath = paths.find(p => p.player === 'A' && p.pieceId === 1);
   assert.ok(bluePath, 'Should have path for Blue P1');
 
-  console.log(`✓ RIGHT boundary: (5,5) right 7 → stopped at (${bluePath.finalPosition.x},${bluePath.finalPosition.y})`);
+  console.log(`✓ RIGHT boundary: (5,5) right 15 → stopped at (${bluePath.finalPosition.x},${bluePath.finalPosition.y})`);
 
-  assert.strictEqual(bluePath.finalPosition.x, 10, 'Should stop at x=10 boundary');
+  assert.strictEqual(bluePath.finalPosition.x, 18, 'Should stop at x=18 boundary');
 });
 
 // ============================================================================
@@ -243,7 +243,10 @@ test('Guard Zone - Blue defender blocked from entering own zone (UP)', () => {
   const gameState = createGameState();
   gameState.noGuardZoneActive.A = true; // Activate Blue's guard zone
 
-  // Blue P2 at (5,8) tries to move UP into guard zone at (5,9)
+  // Blue P2 at (9,10) tries to move UP into guard zone at (9,11)
+  gameState.players.A.pieces[1].x = 9;
+  gameState.players.A.pieces[1].y = 10;
+
   const command: Movement = { pieceId: 2, direction: 'up', distance: 3 };
   const paths = processor.executeMovements(gameState, {
     playerA: [command],
@@ -253,10 +256,10 @@ test('Guard Zone - Blue defender blocked from entering own zone (UP)', () => {
   const bluePath = paths.find(p => p.player === 'A' && p.pieceId === 2);
   assert.ok(bluePath, 'Should have path for Blue P2');
 
-  console.log(`✓ Blue guard zone UP: (5,8) up 3 → blocked at (${bluePath.finalPosition.x},${bluePath.finalPosition.y})`);
+  console.log(`✓ Blue guard zone UP: (9,10) up 3 → blocked at (${bluePath.finalPosition.x},${bluePath.finalPosition.y})`);
 
-  // Should stop at y=8, can't enter y=9 (guard zone starts at y=9)
-  assert.strictEqual(bluePath.finalPosition.y, 8, 'Should be blocked from entering guard zone');
+  // Should stop at y=10, can't enter y=11 (guard zone starts at y=11)
+  assert.strictEqual(bluePath.finalPosition.y, 10, 'Should be blocked from entering guard zone');
 });
 
 test('Guard Zone - Red attacker can enter Blue zone (UP)', () => {
@@ -289,7 +292,10 @@ test('Guard Zone - Red defender blocked from entering own zone (DOWN)', () => {
   const gameState = createGameState();
   gameState.noGuardZoneActive.B = true; // Activate Red's guard zone
 
-  // Red P2 at (5,2) tries to move DOWN into guard zone at (5,1)
+  // Red P2 at (9,2) tries to move DOWN into guard zone at (9,1)
+  gameState.players.B.pieces[1].x = 9;
+  gameState.players.B.pieces[1].y = 2;
+
   const command: Movement = { pieceId: 2, direction: 'down', distance: 3 };
   const paths = processor.executeMovements(gameState, {
     playerA: [],
@@ -299,7 +305,7 @@ test('Guard Zone - Red defender blocked from entering own zone (DOWN)', () => {
   const redPath = paths.find(p => p.player === 'B' && p.pieceId === 2);
   assert.ok(redPath, 'Should have path for Red P2');
 
-  console.log(`✓ Red guard zone DOWN: (5,2) down 3 → blocked at (${redPath.finalPosition.x},${redPath.finalPosition.y})`);
+  console.log(`✓ Red guard zone DOWN: (9,2) down 3 → blocked at (${redPath.finalPosition.x},${redPath.finalPosition.y})`);
 
   // Should stop at y=2, can't enter y=1 (guard zone is y=0-1)
   assert.strictEqual(redPath.finalPosition.y, 2, 'Should be blocked from entering guard zone');
@@ -331,11 +337,11 @@ test('Guard Zone - Blue defender blocked from LEFT into own zone', () => {
   const gameState = createGameState();
   gameState.noGuardZoneActive.A = true;
 
-  // Blue piece at (7,9) tries to move LEFT into guard zone
-  gameState.players.A.pieces[0].x = 7;
-  gameState.players.A.pieces[0].y = 9;
+  // Blue piece at (14,11) tries to move LEFT into guard zone
+  gameState.players.A.pieces[0].x = 14;
+  gameState.players.A.pieces[0].y = 11;
 
-  const command: Movement = { pieceId: 1, direction: 'left', distance: 2 };
+  const command: Movement = { pieceId: 1, direction: 'left', distance: 5 };
   const paths = processor.executeMovements(gameState, {
     playerA: [command],
     playerB: []
@@ -344,10 +350,10 @@ test('Guard Zone - Blue defender blocked from LEFT into own zone', () => {
   const bluePath = paths.find(p => p.player === 'A' && p.pieceId === 1);
   assert.ok(bluePath, 'Should have path for Blue P1');
 
-  console.log(`✓ Blue guard zone LEFT: (7,9) left 2 → blocked at (${bluePath.finalPosition.x},${bluePath.finalPosition.y})`);
+  console.log(`✓ Blue guard zone LEFT: (14,11) left 5 → blocked at (${bluePath.finalPosition.x},${bluePath.finalPosition.y})`);
 
-  // Should stop before entering guard zone (x=4-6 at y=9-10)
-  assert.ok(bluePath.finalPosition.x > 6, 'Should be blocked from entering guard zone laterally');
+  // Should stop before entering guard zone (x=6-12 at y=11-12)
+  assert.ok(bluePath.finalPosition.x > 12, 'Should be blocked from entering guard zone laterally');
 });
 
 test('Guard Zone - Red defender blocked from RIGHT into own zone', () => {
@@ -359,7 +365,7 @@ test('Guard Zone - Red defender blocked from RIGHT into own zone', () => {
   gameState.players.B.pieces[0].x = 3;
   gameState.players.B.pieces[0].y = 1;
 
-  const command: Movement = { pieceId: 1, direction: 'right', distance: 2 };
+  const command: Movement = { pieceId: 1, direction: 'right', distance: 5 };
   const paths = processor.executeMovements(gameState, {
     playerA: [],
     playerB: [command]
@@ -368,10 +374,10 @@ test('Guard Zone - Red defender blocked from RIGHT into own zone', () => {
   const redPath = paths.find(p => p.player === 'B' && p.pieceId === 1);
   assert.ok(redPath, 'Should have path for Red P1');
 
-  console.log(`✓ Red guard zone RIGHT: (3,1) right 2 → blocked at (${redPath.finalPosition.x},${redPath.finalPosition.y})`);
+  console.log(`✓ Red guard zone RIGHT: (3,1) right 5 → blocked at (${redPath.finalPosition.x},${redPath.finalPosition.y})`);
 
-  // Should stop before entering guard zone (x=4-6 at y=0-1)
-  assert.ok(redPath.finalPosition.x < 4, 'Should be blocked from entering guard zone laterally');
+  // Should stop before entering guard zone (x=6-12 at y=0-1)
+  assert.ok(redPath.finalPosition.x < 6, 'Should be blocked from entering guard zone laterally');
 });
 
 console.log('\n✅ All movement direction tests defined\n');

@@ -6,10 +6,23 @@
 import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  BOARD_WIDTH,
+  BOARD_HEIGHT,
+  PIECES_PER_TEAM,
+  STARTING_POSITIONS,
+  FLAG_POSITIONS,
+  TERRITORY,
+  NO_GUARD_ZONES,
+  KEY_POSITIONS
+} from '../game/constants.js';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// Created on first use: the OpenAI constructor throws without a key, which would crash any import
+let openai: OpenAI | null = null;
+function getOpenAI(): OpenAI {
+  if (!openai) openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  return openai;
+}
 
 // Enable/disable prompt logging (set to true to capture prompts/responses)
 const ENABLE_PROMPT_LOGGING = true;
@@ -61,40 +74,53 @@ export type AIResponse = {
   prompt: string; // The full user prompt sent to AI
 };
 
-const GAME_RULES = `# Commander's Flag War - Game Rules
+const NEUTRAL_MIN = TERRITORY.B.max + 1;
+const NEUTRAL_MAX = TERRITORY.A.min - 1;
+export const territoryRows = (side: 'A' | 'B') => `rows ${TERRITORY[side].min}-${TERRITORY[side].max}`;
+
+// Built from constants.ts so the rules the model reads can never drift from the real board again
+export const GAME_RULES = `# Commander's Flag War - Game Rules
 
 ## Objective
 Capture the enemy flag and bring it back to your territory to win.
 
 ## Board
-- 11x11 grid (x: 0-10, y: 0-10)
-- Blue territory: rows 6-10 (Player A)
-- Neutral zone: row 5
-- Red territory: rows 0-4 (Player B)
+- ${BOARD_WIDTH}x${BOARD_HEIGHT} grid (x: 0-${BOARD_WIDTH - 1}, y: 0-${BOARD_HEIGHT - 1})
+- Blue territory: ${territoryRows('A')} (Player A)
+- Neutral zone: rows ${NEUTRAL_MIN}-${NEUTRAL_MAX}
+- Red territory: ${territoryRows('B')} (Player B)
 
 ## Teams
-- Blue (Player A): You control pieces that start in rows 6-10
-- Red (Player B): Enemy pieces that start in rows 0-4
-- Each team has 5 pieces (IDs 0-4)
+- Blue (Player A): pieces start on row ${STARTING_POSITIONS.A[0].y}
+- Red (Player B): pieces start on row ${STARTING_POSITIONS.B[0].y}
+- Each team has ${PIECES_PER_TEAM} pieces (IDs 1-${PIECES_PER_TEAM})
 
 ## Flags
-- Blue flag spawns at (5, 10)
-- Red flag spawns at (5, 0)
+- Blue flag spawns at (${FLAG_POSITIONS.A.x}, ${FLAG_POSITIONS.A.y})
+- Red flag spawns at (${FLAG_POSITIONS.B.x}, ${FLAG_POSITIONS.B.y})
 - Land on enemy flag to pick it up
 - Bring enemy flag to your territory to WIN
 - If flag carrier is tagged, flag returns to spawn
 
+## No-Guard Zones
+- Blue no-guard zone: x ${NO_GUARD_ZONES.A.minX}-${NO_GUARD_ZONES.A.maxX}, rows ${NO_GUARD_ZONES.A.minY}-${NO_GUARD_ZONES.A.maxY}
+- Red no-guard zone: x ${NO_GUARD_ZONES.B.minX}-${NO_GUARD_ZONES.B.maxX}, rows ${NO_GUARD_ZONES.B.minY}-${NO_GUARD_ZONES.B.maxY}
+- You cannot enter your OWN no-guard zone (no camping on your flag), unless you carry the enemy flag
+- A team's zone switches off once the enemy picks up that team's flag
+
 ## Tagging & Jail
-- In enemy territory: You can be tagged and sent to jail
-- In your territory: You can tag enemies and send them to jail
-- Jailed pieces appear in opponent's back row
-- Rescue keys spawn randomly in your territory
-- Pick up rescue key to free all your jailed pieces
+- Two enemy pieces meeting in the neutral zone: both go to jail
+- In enemy territory: you are the invader and go to jail if you meet a defender
+- In your territory: you tag invaders and stay safe
+- Jailed pieces are off the board
+- When you have jailed pieces, your rescue key appears in enemy territory
+  (Blue key at (${KEY_POSITIONS.A.x}, ${KEY_POSITIONS.A.y}), Red key at (${KEY_POSITIONS.B.x}, ${KEY_POSITIONS.B.y}))
+- Pick up your rescue key to free all your jailed pieces back to their start squares
 
 ## Movement
 - Each round, give commands for your pieces
 - Format: {pieceId, direction, distance}
-- Directions: 'up', 'down', 'left', 'right'
+- Directions: 'up' (y+1, toward Blue's side), 'down' (y-1, toward Red's side), 'left' (x-1), 'right' (x+1)
 - Distance: Any number of cells (up to board edge or until blocked)
 - Pieces move simultaneously, then check collisions/tags
 - Movement stops when hitting a wall, another piece, or the target distance
@@ -202,7 +228,7 @@ ${response}
     try {
       console.log(`🤖 AI (Player ${aiPlayer}) thinking...`);
 
-      const completion = await openai.chat.completions.create({
+      const completion = await getOpenAI().chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: GAME_RULES },
@@ -266,8 +292,8 @@ ${response}
    */
   private buildPrompt(boardState: string, aiPlayer: 'A' | 'B'): string {
     const teamName = aiPlayer === 'A' ? 'Blue' : 'Red';
-    const myTerritory = aiPlayer === 'A' ? 'rows 6-10' : 'rows 0-4';
-    const enemyTerritory = aiPlayer === 'A' ? 'rows 0-4' : 'rows 6-10';
+    const myTerritory = territoryRows(aiPlayer);
+    const enemyTerritory = territoryRows(aiPlayer === 'A' ? 'B' : 'A');
 
     return `You are an EXPERT Capture the Flag strategist playing as ${teamName} team (Player ${aiPlayer}).
 
@@ -338,12 +364,12 @@ REASONING: [Your strategic explanation here]
 
 COMMANDS:
 [
-  {"pieceId": 0, "direction": "down", "distance": 6},
-  {"pieceId": 1, "direction": "right", "distance": 4}
+  {"pieceId": 1, "direction": "down", "distance": 6},
+  {"pieceId": 2, "direction": "right", "distance": 4}
 ]
 
 Each command must have:
-- pieceId: The ID of your piece (0-4)
+- pieceId: The ID of your piece (1-${PIECES_PER_TEAM})
 - direction: One of "up", "down", "left", "right"
 - distance: Any positive number (use large distances! 5-10 cells is normal)
 

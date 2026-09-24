@@ -19,6 +19,7 @@ import { GameEngine } from './GameEngine.js';
 import { CommandProcessor } from './CommandProcessor.js';
 import { CollisionDetector } from './CollisionDetector.js';
 import { FlagManager } from './FlagManager.js';
+import { FLAG_POSITIONS } from './constants.js';
 import type { CommanderGameState, Movement } from './types.js';
 
 function createFlagCarrierEscapeScenario(): CommanderGameState {
@@ -125,17 +126,18 @@ test('Flag carrier escape - Red carrying flag collides with Blue defender', () =
     'Blue flag should be dropped when Red P1 is captured'
   );
 
-  // Flag should be at the collision point (5,8)
+  // Flag returns to spawn when the carrier is captured (docs/game-rules.md "Flag Return"),
+  // not to the collision point.
   assert.strictEqual(
     gameState.flags.A.x,
-    5,
-    'Flag should be dropped at collision x=5'
+    FLAG_POSITIONS.A.x,
+    'Flag should return to spawn x'
   );
 
   assert.strictEqual(
     gameState.flags.A.y,
-    8,
-    'Flag should be dropped at collision y=8'
+    FLAG_POSITIONS.A.y,
+    'Flag should return to spawn y'
   );
 
   console.log('\n✅ PASS: Flag carrier correctly captured while trying to escape');
