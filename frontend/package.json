@@ -6,10 +6,11 @@
   "description": "Frontend interface for Commander's Flag War - the ChatGPT-controlled RTS game.",
   "scripts": {
     "dev": "vite --port 3456",
-    "build": "tsc && vite build -c vite.config.dual.ts",
+    "build": "vite build",
     "build-arena": "tsc && vite build -c vite.config.arena.ts --outDir dist-arena",
     "preview": "vite preview",
-    "chatgpt-deploy-arena": "npm run build-arena && echo '⚔️ Arena-only interface ready for ChatGPT!' && echo '📁 File location: dist-arena/arena-only.html' && ls -la dist-arena/arena-only.html"
+    "chatgpt-deploy-arena": "npm run build-arena && echo '⚔️ Arena-only interface ready for ChatGPT!' && echo '📁 File location: dist-arena/arena-only.html' && ls -la dist-arena/arena-only.html",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.21",

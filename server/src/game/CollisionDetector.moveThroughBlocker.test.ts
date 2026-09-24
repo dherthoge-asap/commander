@@ -117,22 +117,25 @@ test('Red piece carrying Blue flag should NOT move through Blue blocker to score
   console.log(`  Blue P3: (${gameState.players.A.pieces[2].x}, ${gameState.players.A.pieces[2].y}), alive: ${gameState.players.A.pieces[2].alive}`);
 
   // ASSERTIONS
-  // Expected behavior: Collision should occur, both pieces jailed (neutral zone)
+  // Expected behavior: Collision occurs and the path is truncated at the blocker,
+  // so Red P1 never reaches the scoring square. Territory-based tagging
+  // (docs/game-rules.md) applies at the collision point (9,1), which is inside
+  // Red's own territory: Red stays safe (defending at home), Blue P3 (the
+  // invader camped in Red territory) is jailed.
   // Note: CollisionDetector adds BOTH pieces to the collision list, so we expect 2 entries
   assert.strictEqual(collisions.length, 2, 'Should detect 2 collision entries (one for each piece)');
 
   const redP1 = gameState.players.B.pieces[0];
   const blueP3 = gameState.players.A.pieces[2];
 
-  // Both pieces should be in jail (flag carrier collision rule)
-  assert.strictEqual(redP1.alive, false, 'Red P1 should be jailed from collision');
-  assert.strictEqual(blueP3.alive, false, 'Blue P3 should be jailed from collision');
+  assert.strictEqual(redP1.alive, true, 'Red P1 should stay safe (defending in own territory)');
+  assert.strictEqual(blueP3.alive, false, 'Blue P3 should be jailed (invading Red territory)');
 
   // Red P1 should be stopped at collision point (9, 1), NOT at scoring position (9, 0)
   assert.strictEqual(redP1.x, 9, 'Red P1 should be at collision point x=9');
   assert.strictEqual(redP1.y, 1, 'Red P1 should be stopped at collision point y=1, NOT at flag y=0');
 
-  console.log('\n✅ TEST PASSED: Red P1 was correctly blocked and jailed');
+  console.log('\n✅ TEST PASSED: Red P1 was correctly blocked before reaching the scoring square');
 });
 
 test('Same scenario but Red P1 moves around blocker (should succeed)', () => {

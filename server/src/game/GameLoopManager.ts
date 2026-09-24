@@ -211,6 +211,12 @@ export class GameLoopManager {
 
     // If game finished, send history after a delay to let animations play
     if (room.gameState.gameStatus === 'finished') {
+      // Stop ticking: a finished room would otherwise keep its 3s timer until everyone disconnects
+      if (room.gameTimer) {
+        clearInterval(room.gameTimer);
+        room.gameTimer = null;
+      }
+      room.status = 'finished';
       setTimeout(() => {
         this.roomManager.broadcastToRoom(roomCode, {
           type: 'gameHistory',

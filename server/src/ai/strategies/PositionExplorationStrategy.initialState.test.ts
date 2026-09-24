@@ -19,7 +19,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { PositionExplorationStrategy } from './PositionExplorationStrategy.js';
-import { STARTING_POSITIONS } from '../../game/constants.js';
+import { STARTING_POSITIONS, PIECES_PER_TEAM } from '../../game/constants.js';
 import type { CommanderGameState } from '../../game/types.js';
 
 test('PositionExplorationStrategy - Initial state: AI should choose to stay still', async () => {
@@ -69,7 +69,7 @@ test('PositionExplorationStrategy - Initial state: AI should choose to stay stil
   console.log('   Commands returned:', result.commands);
 
   // CRITICAL ASSERTIONS: Verify AI chose to stay still
-  assert.strictEqual(result.commands.length, 3, 'Should return 3 commands (one per piece)');
+  assert.strictEqual(result.commands.length, PIECES_PER_TEAM, `Should return ${PIECES_PER_TEAM} commands (one per piece)`);
 
   for (let i = 0; i < result.commands.length; i++) {
     const cmd = result.commands[i];

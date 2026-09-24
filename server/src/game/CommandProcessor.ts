@@ -4,7 +4,26 @@
  */
 
 import type { CommanderGameState, Movement, Piece } from './types';
-import { BOARD_WIDTH, BOARD_HEIGHT, NO_GUARD_ZONES } from './constants.js';
+import { BOARD_WIDTH, BOARD_HEIGHT, NO_GUARD_ZONES, PIECES_PER_TEAM } from './constants.js';
+
+// No move can travel further than the longest board dimension
+export const MAX_MOVE_DISTANCE = Math.max(BOARD_WIDTH, BOARD_HEIGHT) - 1;
+const DIRECTIONS = ['up', 'down', 'left', 'right'] as const;
+
+/**
+ * Validate an untrusted move (WebSocket client, MCP, or model output).
+ * Returns a clean Movement with distance clamped to the board, or null if it can't be a legal move.
+ */
+export function normalizeMovement(raw: unknown): Movement | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const { pieceId, direction, distance } = raw as Record<string, unknown>;
+  const id = Number(pieceId);
+  const dist = Math.floor(Number(distance));
+  if (!Number.isInteger(id) || id < 1 || id > PIECES_PER_TEAM) return null;
+  if (typeof direction !== 'string' || !(DIRECTIONS as readonly string[]).includes(direction)) return null;
+  if (!Number.isFinite(dist) || dist < 1) return null;
+  return { pieceId: id, direction: direction as Movement['direction'], distance: Math.min(dist, MAX_MOVE_DISTANCE) };
+}
 
 interface PiecePath {
   player: 'A' | 'B';
@@ -25,10 +44,14 @@ export class CommandProcessor {
     const allPaths: PiecePath[] = [];
 
     // Determine max distance across all commands
-    const maxDistance = Math.max(
-      ...commands.playerA.map(m => m.distance),
-      ...commands.playerB.map(m => m.distance),
-      1 // Ensure at least 1 step
+    // Clamped so a bad distance can never size a giant stationary path array
+    const maxDistance = Math.min(
+      Math.max(
+        ...commands.playerA.map(m => Number(m.distance) || 0),
+        ...commands.playerB.map(m => Number(m.distance) || 0),
+        1 // Ensure at least 1 step
+      ),
+      MAX_MOVE_DISTANCE
     );
 
     // Player A - build paths for all alive pieces

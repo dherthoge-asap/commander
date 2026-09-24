@@ -61,27 +61,27 @@ function createTestGameState() {
 // NEUTRAL ZONE COLLISION TESTS
 // ============================================================================
 
-test('CollisionDetector - Both pieces jailed in neutral zone (y=5)', () => {
+test('CollisionDetector - Both pieces jailed in neutral zone (y=6)', () => {
   const detector = new CollisionDetector();
   const processor = new CommandProcessor();
   const gameState = createTestGameState();
 
-  // Blue piece at (5,6) moves up 1 to neutral zone (5,5)
-  gameState.players.A!.pieces[0] = { id: 1, x: 5, y: 6, alive: true };
+  // Blue piece at (5,8) moves down 2 to neutral zone (5,6)
+  gameState.players.A!.pieces[0] = { id: 1, x: 5, y: 8, alive: true };
 
-  // Red piece at (5,4) moves down 1 to neutral zone (5,5)
+  // Red piece at (5,4) moves up 2 to neutral zone (5,6)
   gameState.players.B!.pieces[0] = { id: 1, x: 5, y: 4, alive: true };
 
   const paths = processor.executeMovements(gameState, {
-    playerA: [{ pieceId: 1, direction: 'up', distance: 1 }],
-    playerB: [{ pieceId: 1, direction: 'down', distance: 1 }]
+    playerA: [{ pieceId: 1, direction: 'down', distance: 2 }],
+    playerB: [{ pieceId: 1, direction: 'up', distance: 2 }]
   });
 
   const collisions = detector.detectCollisions(paths);
 
-  console.log('⚔️  NEUTRAL ZONE TEST: Both pieces meet at y=5');
-  console.log(`   Blue piece path: (${gameState.players.A!.pieces[0].x},${gameState.players.A!.pieces[0].y}) → (5,5)`);
-  console.log(`   Red piece path: (${gameState.players.B!.pieces[0].x},${gameState.players.B!.pieces[0].y}) → (5,5)`);
+  console.log('⚔️  NEUTRAL ZONE TEST: Both pieces meet at y=6');
+  console.log(`   Blue piece path: (${gameState.players.A!.pieces[0].x},${gameState.players.A!.pieces[0].y}) → (5,6)`);
+  console.log(`   Red piece path: (${gameState.players.B!.pieces[0].x},${gameState.players.B!.pieces[0].y}) → (5,6)`);
   console.log(`   Collisions detected: ${collisions.length}`);
 
   assert.strictEqual(collisions.length, 2, 'Should detect collision for both pieces');
@@ -115,12 +115,12 @@ test('CollisionDetector - Neutral zone collision at y=5 (stationary vs moving)',
   // Blue piece ALREADY at neutral zone (5,5)
   gameState.players.A!.pieces[0] = { id: 1, x: 5, y: 5, alive: true };
 
-  // Red piece at (5,4) moves down 1 to neutral zone (5,5)
+  // Red piece at (5,4) moves up 1 to neutral zone (5,5)
   gameState.players.B!.pieces[0] = { id: 1, x: 5, y: 4, alive: true };
 
   const paths = processor.executeMovements(gameState, {
     playerA: [], // Blue stays still
-    playerB: [{ pieceId: 1, direction: 'down', distance: 1 }]
+    playerB: [{ pieceId: 1, direction: 'up', distance: 1 }]
   });
 
   const collisions = detector.detectCollisions(paths);
@@ -201,12 +201,12 @@ test('CollisionDetector - Enemy territory collision (invader jailed)', () => {
   const processor = new CommandProcessor();
   const gameState = createTestGameState();
 
-  // Blue piece in Red territory (y=2), Red piece at same location
-  gameState.players.A!.pieces[0] = { id: 1, x: 4, y: 3, alive: true };
+  // Blue piece in neutral zone (y=5), Red piece stationary in Red territory (y=2)
+  gameState.players.A!.pieces[0] = { id: 1, x: 4, y: 5, alive: true };
   gameState.players.B!.pieces[0] = { id: 1, x: 4, y: 2, alive: true };
 
   const paths = processor.executeMovements(gameState, {
-    playerA: [{ pieceId: 1, direction: 'up', distance: 1 }], // 4,3 → 4,2 (Red territory)
+    playerA: [{ pieceId: 1, direction: 'down', distance: 3 }], // 4,5 → 4,2 (Red territory)
     playerB: [] // Red stays still
   });
 
@@ -243,7 +243,7 @@ test('CollisionDetector - Own territory collision (defender safe)', () => {
 
   const paths = processor.executeMovements(gameState, {
     playerA: [], // Blue stays still in own territory
-    playerB: [{ pieceId: 1, direction: 'down', distance: 1 }] // Red invades Blue territory
+    playerB: [{ pieceId: 1, direction: 'up', distance: 1 }] // Red invades Blue territory
   });
 
   const collisions = detector.detectCollisions(paths);
