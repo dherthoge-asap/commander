@@ -17,6 +17,8 @@ export class MessageHandler {
   private onStartGameLoop: (roomCode: string) => void;
   private onStopGameLoop: (roomCode: string) => void;
   private promptOrchestrator: PromptOrchestrator | null;
+  // Every room ticks every 3 s and can spend model calls, so cap how many exist at once
+  private readonly maxRooms = Number(process.env.MAX_ROOMS) || 50;
 
   constructor(
     roomManager: RoomManager,
@@ -107,7 +109,18 @@ export class MessageHandler {
   /**
    * Handle room creation
    */
+  /**
+   * Refuse a new room once the server holds maxRooms (tells the client why)
+   */
+  private roomLimitReached(ws: WebSocket): boolean {
+    if (this.roomManager.getAllRooms().length < this.maxRooms) return false;
+    console.warn(`⚠️ Room limit (${this.maxRooms}) reached; refusing a new room`);
+    ws.send(JSON.stringify({ type: 'error', payload: { message: 'The server is full right now; try again in a few minutes' } }));
+    return true;
+  }
+
   private handleCreateRoom(ws: WebSocket, payload: any): void {
+    if (this.roomLimitReached(ws)) return;
     const playerId = (ws as any)._playerId;
     const roomCode = this.generateRoomCode();
 
@@ -142,6 +155,7 @@ export class MessageHandler {
    * Handle AI room creation
    */
   private handleCreateAIRoom(ws: WebSocket, payload: any): void {
+    if (this.roomLimitReached(ws)) return;
     const playerId = (ws as any)._playerId;
     const roomCode = this.generateRoomCode();
 

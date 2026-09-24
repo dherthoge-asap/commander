@@ -10,6 +10,7 @@ import {
 import fs from "node:fs";
 import path from "node:path";
 import { URL, fileURLToPath } from "node:url";
+import { timingSafeEqual } from "node:crypto";
 import { WebSocketServer, WebSocket } from "ws";
 
 import { RescueKeyManager } from "./game/RescueKeyManager.js";
@@ -91,14 +92,32 @@ class MovementCommanderGameManager {
 }
 
 export type CommanderServerOptions = {
-  /** Model used to translate prompt-mode orders. Defaults to OpenAI; tests pass a fake. */
+  /** Model used to translate prompt-mode orders. Defaults to MODEL_PROVIDER (Bedrock); tests pass a fake. */
   modelClient?: ModelClient;
+  /** When set, a WebSocket only connects with ?code=<accessCode>. Defaults to ACCESS_CODE. */
+  accessCode?: string;
+  /** Serve the /mcp endpoints. Defaults to true unless MCP_ENABLED=false. */
+  mcpEnabled?: boolean;
+  /** Ping every client this often and drop the ones that stop answering. */
+  heartbeatMs?: number;
 };
+
+/** Constant-time check of the ?code= on a WebSocket upgrade against the configured access code. */
+export function accessCodeMatches(requestUrl: string | undefined, accessCode: string): boolean {
+  const given = new URL(requestUrl || "/", "http://localhost").searchParams.get("code") || "";
+  const a = Buffer.from(given);
+  const b = Buffer.from(accessCode);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
 
 /**
  * Build the HTTP + WebSocket server without listening (movement-server.ts listens; tests use port 0)
  */
 export function createCommanderServer(options: CommanderServerOptions = {}) {
+  const accessCode = options.accessCode ?? process.env.ACCESS_CODE ?? "";
+  const mcpEnabled = options.mcpEnabled ?? process.env.MCP_ENABLED !== "false";
+  const heartbeatMs = options.heartbeatMs ?? 30_000;
+
   // Game manager for this server
   const gameManager = new MovementCommanderGameManager(options.modelClient);
 
@@ -108,7 +127,7 @@ export function createCommanderServer(options: CommanderServerOptions = {}) {
   // Path setup for static file serving
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const ROOT_DIR = path.resolve(__dirname, "..", "..");
-  const ASSETS_DIR = path.resolve(ROOT_DIR, "assets");
+  const ASSETS_DIR = path.resolve(process.env.STATIC_DIR || path.join(ROOT_DIR, "assets"));
 
   // HTTP Server setup
   const httpServer = createServer(async (req: IncomingMessage, res: ServerResponse) => {
@@ -122,6 +141,18 @@ export function createCommanderServer(options: CommanderServerOptions = {}) {
     if (req.method === 'OPTIONS') {
       res.writeHead(200);
       res.end();
+      return;
+    }
+
+    if (url.pathname === "/healthz") {
+      res.writeHead(200, { "Content-Type": "text/plain" });
+      res.end("ok");
+      return;
+    }
+
+    if (!mcpEnabled && url.pathname.startsWith("/mcp")) {
+      res.writeHead(404);
+      res.end("Not found");
       return;
     }
 
@@ -151,6 +182,11 @@ export function createCommanderServer(options: CommanderServerOptions = {}) {
       // Static file serving
       const fileName = url.pathname === "/" ? "index.html" : url.pathname.slice(1);
       const filePath = path.join(ASSETS_DIR, fileName);
+      if (!filePath.startsWith(ASSETS_DIR + path.sep)) {
+        res.writeHead(404);
+        res.end('File not found');
+        return;
+      }
 
       console.log(`📁 Static file request: ${url.pathname}`);
       console.log(`📂 Looking for file at: ${filePath}`);
@@ -182,9 +218,32 @@ export function createCommanderServer(options: CommanderServerOptions = {}) {
 
   // WebSocket Server for multiplayer
   // Client messages are small (moves, prompts capped at 500 chars); refuse huge frames outright
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws', maxPayload: 64 * 1024 });
+  // With an access code set, only clients that know it can open a game connection (and spend model calls)
+  const wss = new WebSocketServer({
+    server: httpServer,
+    path: '/ws',
+    maxPayload: 64 * 1024,
+    verifyClient: accessCode ? (info: { req: IncomingMessage }) => accessCodeMatches(info.req.url, accessCode) : undefined,
+  });
+
+  // Heartbeat: keeps idle lobby connections alive through the load balancer and CDN, and drops dead ones
+  const alive = new WeakMap<WebSocket, boolean>();
+  const heartbeat = setInterval(() => {
+    for (const client of wss.clients) {
+      if (alive.get(client) === false) {
+        client.terminate();
+        continue;
+      }
+      alive.set(client, false);
+      client.ping();
+    }
+  }, heartbeatMs);
+  heartbeat.unref();
+  httpServer.on('close', () => clearInterval(heartbeat));
 
   wss.on('connection', (ws) => {
+    alive.set(ws, true);
+    ws.on('pong', () => alive.set(ws, true));
     console.log('🎮 New WebSocket connection for movement commander game');
     gameManager.addConnection(ws);
 
