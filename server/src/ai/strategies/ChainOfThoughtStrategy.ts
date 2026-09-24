@@ -7,12 +7,14 @@ import OpenAI from 'openai';
 import * as fs from 'fs';
 import * as path from 'path';
 import type { AIStrategy, AIResponse, Command } from './AIStrategy.js';
+import { GAME_RULES as SHARED_GAME_RULES, territoryRows } from '../AIService.js';
+import { PIECES_PER_TEAM } from '../../game/constants.js';
 import type { GameState } from '../../game/types.js';
 import { BOARD_WIDTH, BOARD_HEIGHT } from '../../game/constants.js';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// Created on first use: the OpenAI constructor throws without a key
+let openaiClient: OpenAI | null = null;
+const getOpenAI = () => (openaiClient ??= new OpenAI({ apiKey: process.env.OPENAI_API_KEY }));
 
 // Enable/disable prompt logging (set to true to capture prompts/responses)
 const ENABLE_PROMPT_LOGGING = true;
@@ -21,49 +23,8 @@ const LOG_DIR = path.join(process.cwd(), 'ai-logs');
 // Track which game sessions we've initialized logs for
 const initializedSessions = new Set<string>();
 
-const GAME_RULES = `# Commander's Flag War - Game Rules
-
-## Objective
-Capture the enemy flag and bring it back to your territory to win.
-
-## Board
-- 11x11 grid (x: 0-10, y: 0-10)
-- Blue territory: rows 6-10 (Player A)
-- Neutral zone: row 5
-- Red territory: rows 0-4 (Player B)
-
-## Teams
-- Blue (Player A): You control pieces that start in rows 6-10
-- Red (Player B): Enemy pieces that start in rows 0-4
-- Each team has 5 pieces (IDs 0-4)
-
-## Flags
-- Blue flag spawns at (5, 10)
-- Red flag spawns at (5, 0)
-- Land on enemy flag to pick it up
-- Bring enemy flag to your territory to WIN
-- If flag carrier is tagged, flag returns to spawn
-
-## Tagging & Jail
-- In enemy territory: You can be tagged and sent to jail
-- In your territory: You can tag enemies and send them to jail
-- Jailed pieces appear in opponent's back row
-- Rescue keys spawn randomly in your territory
-- Pick up rescue key to free all your jailed pieces
-
-## Movement
-- Each round, give commands for your pieces
-- Format: {pieceId, direction, distance}
-- Directions: 'up', 'down', 'left', 'right'
-- Distance: Any number of cells (up to board edge or until blocked)
-- Pieces move simultaneously, then check collisions/tags
-- Movement stops when hitting a wall, another piece, or the target distance
-
-## Strategy Tips
-- Protect your flag
-- Coordinate attacks
-- Use rescue keys to free teammates
-- Balance offense and defense`;
+// Shared with AIService, which builds it from constants.ts (the old copy here described an 11x11 board)
+const GAME_RULES = SHARED_GAME_RULES;
 
 export class ChainOfThoughtStrategy implements AIStrategy {
   readonly name = 'chain-of-thought';
@@ -164,7 +125,7 @@ ${response}
     try {
       console.log(`🤖 AI (${this.name}-${this.version}, Player ${aiPlayer}) thinking...`);
 
-      const completion = await openai.chat.completions.create({
+      const completion = await getOpenAI().chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: GAME_RULES },
@@ -261,8 +222,8 @@ ${response}
 
   private buildPrompt(boardState: string, aiPlayer: 'A' | 'B'): string {
     const teamName = aiPlayer === 'A' ? 'Blue' : 'Red';
-    const myTerritory = aiPlayer === 'A' ? 'rows 6-10' : 'rows 0-4';
-    const enemyTerritory = aiPlayer === 'A' ? 'rows 0-4' : 'rows 6-10';
+    const myTerritory = territoryRows(aiPlayer);
+    const enemyTerritory = territoryRows(aiPlayer === 'A' ? 'B' : 'A');
     const myFlagKey = aiPlayer;
     const enemyFlagKey = aiPlayer === 'A' ? 'B' : 'A';
 
@@ -376,12 +337,12 @@ STRATEGY:
 
 COMMANDS:
 [
-  {"pieceId": 0, "direction": "down", "distance": 6},
-  {"pieceId": 1, "direction": "right", "distance": 4}
+  {"pieceId": 1, "direction": "down", "distance": 6},
+  {"pieceId": 2, "direction": "right", "distance": 4}
 ]
 
 Each command must have:
-- pieceId: The ID of your piece (0-4)
+- pieceId: The ID of your piece (1-${PIECES_PER_TEAM})
 - direction: One of "up", "down", "left", "right"
 - distance: Any positive number (use large distances! 5-10 cells is normal)
 

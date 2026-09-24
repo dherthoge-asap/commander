@@ -76,7 +76,7 @@ export type AIResponse = {
 
 const NEUTRAL_MIN = TERRITORY.B.max + 1;
 const NEUTRAL_MAX = TERRITORY.A.min - 1;
-const territoryRows = (side: 'A' | 'B') => `rows ${TERRITORY[side].min}-${TERRITORY[side].max}`;
+export const territoryRows = (side: 'A' | 'B') => `rows ${TERRITORY[side].min}-${TERRITORY[side].max}`;
 
 // Built from constants.ts so the rules the model reads can never drift from the real board again
 export const GAME_RULES = `# Commander's Flag War - Game Rules
