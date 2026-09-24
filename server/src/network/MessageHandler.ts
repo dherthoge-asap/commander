@@ -6,6 +6,7 @@
 import type { WebSocket } from 'ws';
 import type { GameMessage } from '../game/types.js';
 import { RoomManager } from '../game/RoomManager.js';
+import type { PromptOrchestrator } from '../ai/PromptOrchestrator.js';
 import { STARTING_POSITIONS } from '../game/constants.js';
 import type { Movement } from '../game/types.js';
 import { normalizeMovement } from '../game/CommandProcessor.js';
@@ -15,17 +16,20 @@ export class MessageHandler {
   private connections: Set<WebSocket>;
   private onStartGameLoop: (roomCode: string) => void;
   private onStopGameLoop: (roomCode: string) => void;
+  private promptOrchestrator: PromptOrchestrator | null;
 
   constructor(
     roomManager: RoomManager,
     connections: Set<WebSocket>,
     onStartGameLoop: (roomCode: string) => void,
-    onStopGameLoop: (roomCode: string) => void
+    onStopGameLoop: (roomCode: string) => void,
+    promptOrchestrator: PromptOrchestrator | null = null
   ) {
     this.roomManager = roomManager;
     this.connections = connections;
     this.onStartGameLoop = onStartGameLoop;
     this.onStopGameLoop = onStopGameLoop;
+    this.promptOrchestrator = promptOrchestrator;
   }
 
   /**
@@ -53,6 +57,9 @@ export class MessageHandler {
         break;
       case 'mcpQueueMove':
         this.handleMcpQueueMove(ws, message.payload);
+        break;
+      case 'submitPrompt':
+        this.handleSubmitPrompt(ws, message.payload);
         break;
     }
   }
@@ -275,6 +282,29 @@ export class MessageHandler {
     }));
 
     console.log(`📤 Sent games list: ${gamesList.length} rooms available`);
+  }
+
+  /**
+   * Handle a prompt-mode order: the team's plain English is translated into moves for its own pieces
+   */
+  private handleSubmitPrompt(ws: WebSocket, payload: { roomCode: string; prompt: string }): void {
+    const playerId = (ws as any)._playerId;
+    const room = this.roomManager.getRoom(payload?.roomCode);
+
+    // Side comes from the connection, never from the payload
+    let side: 'A' | 'B' | null = null;
+    if (room && room.connections.has(ws)) {
+      if (room.gameState.players.A?.id === playerId) side = 'A';
+      else if (room.gameState.players.B?.id === playerId && room.gameState.players.B.player.type === 'human') side = 'B';
+    }
+
+    if (!room || !side || !this.promptOrchestrator) {
+      ws.send(JSON.stringify({ type: 'error', payload: { message: 'Not a player in that room' } }));
+      return;
+    }
+
+    console.log(`🗣️ Player ${side} submitted a prompt in room ${room.roomCode}`);
+    void this.promptOrchestrator.submit(room.roomCode, side, payload.prompt, ws);
   }
 
   /**
