@@ -181,7 +181,8 @@ export function createCommanderServer(options: CommanderServerOptions = {}) {
   });
 
   // WebSocket Server for multiplayer
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  // Client messages are small (moves, prompts capped at 500 chars); refuse huge frames outright
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws', maxPayload: 64 * 1024 });
 
   wss.on('connection', (ws) => {
     console.log('🎮 New WebSocket connection for movement commander game');

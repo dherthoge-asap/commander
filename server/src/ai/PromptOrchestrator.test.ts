@@ -10,14 +10,16 @@ import { PromptTranslator, type ChatMessage } from './PromptTranslator.js';
 import { createFakeModel, ordersFrom } from './testing/fakeModel.js';
 import { RoomManager } from '../game/RoomManager.js';
 
-function setup(model = createFakeModel()) {
+function setup(model = createFakeModel(), minIntervalMs = 0) {
   const sent: any[] = [];
   const ws = { readyState: 1, send: (m: string) => sent.push(JSON.parse(m)) } as any;
   const rooms = new RoomManager();
   rooms.createRoom('ROOM', ws);
   rooms.joinRoom('ROOM', { readyState: 1, send() {} } as any, 'local-b');
-  const orchestrator = new PromptOrchestrator(rooms, new PromptTranslator(model));
-  return { rooms, orchestrator, ws, sent, room: rooms.getRoom('ROOM')! };
+  const room = rooms.getRoom('ROOM')!;
+  room.gameState.gameStatus = 'playing'; // the game loop would set this; not started in unit tests
+  const orchestrator = new PromptOrchestrator(rooms, new PromptTranslator(model), { minIntervalMs });
+  return { rooms, orchestrator, ws, sent, room };
 }
 
 test('both teams can prompt; each queues only its own side', async () => {
@@ -81,10 +83,36 @@ test('a late translation queues for the current round, not a round that already 
   assert.deepEqual(room.gameState.commandQueue[4].playerA, [{ pieceId: 3, direction: 'down', distance: 2 }]);
 });
 
-test('prompts for a missing or finished room do nothing and do not throw', async () => {
-  const { orchestrator, ws, room } = setup();
+test('prompts for a missing, waiting, paused or finished room queue nothing and never call the model', async () => {
+  const model = createFakeModel();
+  const { orchestrator, ws, room, sent } = setup(model);
   await orchestrator.submit('NOPE', 'A', 'piece 1 down 1', ws);
-  room.gameState.gameStatus = 'finished';
-  await orchestrator.submit('ROOM', 'A', 'piece 1 down 1', ws);
+  for (const status of ['waiting', 'paused', 'finished'] as const) {
+    room.gameState.gameStatus = status;
+    await orchestrator.submit('ROOM', 'A', 'piece 1 down 1', ws);
+  }
   assert.deepEqual(room.gameState.commandQueue, {});
+  assert.equal(model.calls.length, 0);
+  // Every refused prompt still gets an answer, so the UI never waits forever
+  assert.deepEqual(sent.map(m => m.payload.error), ['no_room', 'not_playing', 'not_playing', 'not_playing']);
+});
+
+test('calls for one team start at least minIntervalMs apart; other teams are not held up', async () => {
+  const starts: { side: string; at: number }[] = [];
+  const fake = createFakeModel();
+  const timedModel = async (messages: ChatMessage[]) => {
+    starts.push({ side: messages[1].content.includes('Blue (Player A)') ? 'A' : 'B', at: Date.now() });
+    return fake(messages);
+  };
+  const { orchestrator, ws } = setup(timedModel as any, 200);
+
+  await orchestrator.submit('ROOM', 'A', 'piece 1 down 1', ws);
+  await orchestrator.submit('ROOM', 'B', 'piece 1 up 1', ws);
+  await orchestrator.submit('ROOM', 'A', 'piece 2 down 1', ws);
+
+  const [a1, b1, a2] = starts;
+  assert.equal(a1.side, 'A');
+  assert.equal(b1.side, 'B');
+  assert.ok(b1.at - a1.at < 150, 'team B did not wait on team A');
+  assert.ok(a2.at - a1.at >= 195, `team A's second call waited out the interval (${a2.at - a1.at} ms)`);
 });
