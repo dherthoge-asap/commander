@@ -157,7 +157,7 @@ export type GameRoom = {
 // ============================================================================
 
 export type GameMessage = {
-  type: 'gameState' | 'move' | 'join' | 'reset' | 'start' | 'pause' | 'createRoom' | 'joinRoom' | 'getGamesList' | 'createAIRoom' | 'queueCommand' | 'gameHistory';
+  type: 'gameState' | 'move' | 'join' | 'reset' | 'start' | 'pause' | 'createRoom' | 'joinRoom' | 'getGamesList' | 'createAIRoom' | 'queueCommand' | 'gameHistory' | 'submitPrompt';
   payload: any;
 };
 
