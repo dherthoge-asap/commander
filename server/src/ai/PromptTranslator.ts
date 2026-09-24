@@ -142,6 +142,8 @@ export class PromptTranslator {
       console.error(`❌ Prompt translation failed for side ${side}:`, error instanceof Error ? error.message : error);
       return { commands: [], summary: 'Could not reach the model; no moves this time.', error: 'model_error' };
     }
+    // One line per answered model call; the infra stack's spend alarm counts these (keep the marker in sync)
+    console.log(`commander_model_call side=${side}`);
 
     return this.parseResponse(raw, gameState, side);
   }

@@ -18,7 +18,6 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
-import * as budgets from 'aws-cdk-lib/aws-budgets';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as cwActions from 'aws-cdk-lib/aws-cloudwatch-actions';
 import * as sns from 'aws-cdk-lib/aws-sns';
@@ -29,8 +28,6 @@ export const HAIKU_PROFILE_ID = 'us.anthropic.claude-haiku-4-5-20251001-v1:0';
 const HAIKU_MODEL_ID = 'anthropic.claude-haiku-4-5-20251001-v1:0';
 // Regions the us. cross-region inference profile can route a Haiku 4.5 call to
 const HAIKU_PROFILE_REGIONS = ['us-east-1', 'us-east-2', 'us-west-2'];
-// How AWS billing names Haiku 4.5 on Bedrock (matches the Sonnet 5 / Opus lines already in this account)
-const HAIKU_BILLING_SERVICE = 'Claude Haiku 4.5 (Amazon Bedrock Edition)';
 // AWS-managed prefix list of CloudFront's origin-facing IPs (com.amazonaws.global.cloudfront.origin-facing), us-east-1
 const CLOUDFRONT_ORIGIN_PREFIX_LIST = 'pl-3b927c52';
 const ORIGIN_HEADER = 'X-Origin-Verify';
@@ -41,12 +38,10 @@ export interface CommanderStackProps extends cdk.StackProps {
   originSecret: string;
   /** When set, the game socket only opens with ?code=<accessCode>. */
   accessCode?: string;
-  /** Budget and alarm emails go here (each subscription needs one confirmation click). */
+  /** Alarm emails go here (each subscription needs one confirmation click). */
   alertEmail?: string;
   /** Server-side hard ceiling on model calls per UTC day. */
   modelCallsPerDay?: number;
-  /** Monthly Haiku spend budget in USD. */
-  modelBudgetUsd?: number;
   /** Tests pass a registry image so synth needs no Docker build context. */
   image?: ecs.ContainerImage;
 }
@@ -56,7 +51,6 @@ export class CommanderStack extends cdk.Stack {
     super(scope, id, props);
 
     const modelCallsPerDay = props.modelCallsPerDay ?? 3000;
-    const modelBudgetUsd = props.modelBudgetUsd ?? 10;
 
     // Public subnets only and no NAT gateway: the task gets a public IP to reach ECR and Bedrock,
     // but its security group only admits the ALB.
@@ -168,27 +162,26 @@ export class CommanderStack extends cdk.Stack {
       },
     });
 
-    // Alerts: model spend (billing budget, lags hours) plus a near-real-time token-rate alarm and a health alarm
+    // Alerts: a model-call rate alarm and a health alarm. Both count only this stack's traffic. There is no
+    // AWS Budget: the Bedrock billing line and the AWS/Bedrock token metrics are account-wide (every Haiku
+    // call in the sandbox), and this linked account can't activate cost allocation tags to narrow them.
+    // The server's MODEL_CALLS_PER_DAY cap is the hard spend limit; this alarm is the early warning.
     const alerts = new sns.Topic(this, 'Alerts', { displayName: 'Commander alerts' });
     if (props.alertEmail) alerts.addSubscription(new subs.EmailSubscription(props.alertEmail));
 
-    const tokens = (name: string) => new cloudwatch.Metric({
-      namespace: 'AWS/Bedrock',
-      metricName: name,
-      dimensionsMap: { ModelId: HAIKU_PROFILE_ID },
-      statistic: 'Sum',
-      period: cdk.Duration.hours(1),
-    });
-    const hourlySpend = new cloudwatch.MathExpression({
-      expression: '(FILL(inTok, 0) * 1 + FILL(outTok, 0) * 5) / 1000000',
-      usingMetrics: { inTok: tokens('InputTokenCount'), outTok: tokens('OutputTokenCount') },
-      label: 'Estimated Haiku spend (USD/hour)',
-      period: cdk.Duration.hours(1),
-    });
+    // PromptTranslator logs one "commander_model_call" line per answered model call
+    const modelCalls = new logs.MetricFilter(this, 'ModelCallsFilter', {
+      logGroup,
+      filterPattern: logs.FilterPattern.literal('"commander_model_call"'),
+      metricNamespace: 'Commander',
+      metricName: 'ModelCalls',
+      metricValue: '1',
+      defaultValue: 0,
+    }).metric({ statistic: 'Sum', period: cdk.Duration.hours(1) });
     new cloudwatch.Alarm(this, 'ModelSpendAlarm', {
-      alarmDescription: 'Haiku 4.5 spend is running above $2/hour (estimated from token counts at $1/$5 per MTok)',
-      metric: hourlySpend,
-      threshold: 2,
+      alarmDescription: 'Commander made over 1000 model calls in an hour (about $2/hour of Haiku 4.5 at roughly $0.002 a call)',
+      metric: modelCalls,
+      threshold: 1000,
       evaluationPeriods: 1,
       comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
@@ -202,22 +195,6 @@ export class CommanderStack extends cdk.Stack {
       comparisonOperator: cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
       treatMissingData: cloudwatch.TreatMissingData.BREACHING,
     }).addAlarmAction(new cwActions.SnsAction(alerts));
-
-    if (props.alertEmail) {
-      new budgets.CfnBudget(this, 'ModelBudget', {
-        budget: {
-          budgetName: `${this.stackName}-haiku-spend`,
-          budgetType: 'COST',
-          timeUnit: 'MONTHLY',
-          budgetLimit: { amount: modelBudgetUsd, unit: 'USD' },
-          costFilters: { Service: [HAIKU_BILLING_SERVICE] },
-        },
-        notificationsWithSubscribers: [50, 100].map(threshold => ({
-          notification: { notificationType: 'ACTUAL', comparisonOperator: 'GREATER_THAN', threshold, thresholdType: 'PERCENTAGE' },
-          subscribers: [{ subscriptionType: 'EMAIL', address: props.alertEmail! }],
-        })),
-      });
-    }
 
     const base = `https://${distribution.distributionDomainName}`;
     const code = props.accessCode ? `?code=${props.accessCode}` : '';

@@ -20,7 +20,6 @@ const stack = new CommanderStack(app, 'Commander', {
   accessCode: ctx('accessCode'),
   alertEmail: ctx('alertEmail'),
   modelCallsPerDay: Number(ctx('modelCallsPerDay') ?? 300),
-  modelBudgetUsd: Number(ctx('modelBudgetUsd') ?? 10),
 });
 
 cdk.Tags.of(stack).add('project', 'commander');

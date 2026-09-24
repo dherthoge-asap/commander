@@ -80,9 +80,10 @@ test('access code and model call cap reach the container; MCP is off', () => {
   assert.equal(env.MODEL_PROVIDER, 'bedrock');
 });
 
-test('Haiku spend budget of $10 with email alerts, only when an email is given', () => {
-  synth().hasResourceProperties('AWS::Budgets::Budget', {
-    Budget: Match.objectLike({ BudgetLimit: { Amount: 10, Unit: 'USD' }, CostFilters: { Service: ['Claude Haiku 4.5 (Amazon Bedrock Edition)'] } }),
-  });
-  synth({ alertEmail: undefined }).resourceCountIs('AWS::Budgets::Budget', 0);
+test('no AWS Budget (billing is account-wide); the spend alarm counts only this stack\'s model calls', () => {
+  const tpl = synth();
+  tpl.resourceCountIs('AWS::Budgets::Budget', 0);
+  tpl.hasResourceProperties('AWS::Logs::MetricFilter', { FilterPattern: '"commander_model_call"' });
+  tpl.hasResourceProperties('AWS::CloudWatch::Alarm', { Namespace: 'Commander', MetricName: 'ModelCalls', Threshold: 1000 });
+  assert.equal(JSON.stringify(tpl.toJSON()).includes('AWS/Bedrock'), false);
 });
