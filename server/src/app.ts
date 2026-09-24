@@ -116,7 +116,7 @@ export function accessCodeMatches(requestUrl: string | undefined, accessCode: st
 export function createCommanderServer(options: CommanderServerOptions = {}) {
   const accessCode = options.accessCode ?? process.env.ACCESS_CODE ?? "";
   const mcpEnabled = options.mcpEnabled ?? process.env.MCP_ENABLED !== "false";
-  const heartbeatMs = options.heartbeatMs ?? 30_000;
+  const heartbeatMs = options.heartbeatMs ?? 20_000;
 
   // Game manager for this server
   const gameManager = new MovementCommanderGameManager(options.modelClient);

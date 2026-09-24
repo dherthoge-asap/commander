@@ -1,0 +1,21 @@
+{
+  "name": "commander-infra",
+  "private": true,
+  "version": "0.1.0",
+  "description": "CDK app that hosts Commander on ECS Fargate behind an ALB and CloudFront in the dev sandbox account",
+  "scripts": {
+    "synth": "node scripts/cdk.mjs synth",
+    "deploy": "node scripts/cdk.mjs deploy",
+    "destroy": "node scripts/cdk.mjs destroy",
+    "diff": "node scripts/cdk.mjs diff",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "aws-cdk": "^2.1000.0",
+    "aws-cdk-lib": "^2.200.0",
+    "constructs": "^10.4.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.6.3"
+  }
+}
