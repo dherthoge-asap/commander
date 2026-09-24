@@ -10,14 +10,15 @@ import OpenAI from 'openai';
 import type { CommanderGameState, Movement } from '../game/types.js';
 import { normalizeMovement } from '../game/CommandProcessor.js';
 import { GAME_RULES } from './AIService.js';
+import { createBedrockClient } from './bedrockClient.js';
 
 export const MAX_PROMPT_LENGTH = 500;
-const MODEL = 'gpt-4o-mini';
+const OPENAI_MODEL = 'gpt-4o-mini';
 const MODEL_TIMEOUT_MS = 10_000;
 
 export type ChatMessage = { role: 'system' | 'user'; content: string };
 
-/** Sends messages to a model and returns its raw text. Injectable so tests never hit OpenAI. */
+/** Sends messages to a model and returns its raw text. Injectable so tests never hit a real model. */
 export type ModelClient = (messages: ChatMessage[]) => Promise<string>;
 
 export type TranslationResult = {
@@ -40,15 +41,15 @@ Rules for your output:
 - If the orders are empty, nonsense, or not about moving pieces, return an empty commands list.
 
 Respond with JSON only, exactly this shape:
-{"summary": "<one short sentence on what you ordered>", "commands": [{"pieceId": 1, "direction": "down", "distance": 3}]}`;
+{"commands": [{"pieceId": 1, "direction": "down", "distance": 3}]}`;
 
 let openai: OpenAI | null = null;
 
-/** Default client: gpt-4o-mini in JSON mode with a timeout and a small token cap. */
+/** OpenAI fallback (MODEL_PROVIDER=openai): gpt-4o-mini in JSON mode with a timeout and a small token cap. */
 export const openAIClient: ModelClient = async (messages) => {
   if (!openai) openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: MODEL_TIMEOUT_MS, maxRetries: 1 });
   const completion = await openai.chat.completions.create({
-    model: MODEL,
+    model: OPENAI_MODEL,
     messages,
     temperature: 0.2,
     max_tokens: 400,
@@ -56,6 +57,53 @@ export const openAIClient: ModelClient = async (messages) => {
   });
   return completion.choices[0]?.message?.content ?? '';
 };
+
+/** Thrown by a budgeted client once the day's model calls are used up. */
+export class ModelBudgetExhausted extends Error {
+  constructor() { super('Model call budget for today is used up'); }
+}
+
+/**
+ * Hard ceiling on model calls per UTC day, across every room on this server, so an open
+ * endpoint can't run up the model bill. Only real model calls count.
+ */
+export function withDailyCallBudget(client: ModelClient, maxCallsPerDay: number, now: () => number = Date.now): ModelClient {
+  let day = '';
+  let used = 0;
+  return async (messages) => {
+    const today = new Date(now()).toISOString().slice(0, 10);
+    if (today !== day) { day = today; used = 0; }
+    if (used >= maxCallsPerDay) throw new ModelBudgetExhausted();
+    used++;
+    return client(messages);
+  };
+}
+
+const DEFAULT_MODEL_CALLS_PER_DAY = 3000; // about $6 of Haiku 4.5 at roughly $0.002 a call
+
+/**
+ * The model behind prompt mode, picked by env: MODEL_PROVIDER=bedrock (default, Claude Haiku 4.5
+ * via the AWS credential chain) or openai (needs OPENAI_API_KEY). Always wrapped in the daily
+ * call budget (MODEL_CALLS_PER_DAY).
+ */
+export function selectModelClient(env: NodeJS.ProcessEnv = process.env): ModelClient {
+  const provider = (env.MODEL_PROVIDER || 'bedrock').toLowerCase();
+  if (provider !== 'bedrock' && provider !== 'openai') {
+    throw new Error(`Unknown MODEL_PROVIDER "${env.MODEL_PROVIDER}" (use bedrock or openai)`);
+  }
+  const perDay = Number(env.MODEL_CALLS_PER_DAY);
+  const limit = Number.isFinite(perDay) && perDay >= 0 ? perDay : DEFAULT_MODEL_CALLS_PER_DAY;
+  const base = provider === 'openai' ? openAIClient : createBedrockClient();
+  console.log(`🧠 Prompt mode model: ${provider}, at most ${limit} calls a day`);
+  return withDailyCallBudget(base, limit);
+}
+
+/** Plain description of the moves; this, not model text, is what the room sees. */
+export function describeCommands(commands: Movement[]): string {
+  if (commands.length === 0) return 'No moves this round.';
+  const text = `Moving ${commands.map(c => `piece ${c.pieceId} ${c.direction} ${c.distance}`).join(', ')}.`;
+  return text.length <= 140 ? text : `Moving ${commands.length} pieces.`;
+}
 
 /**
  * True when the text could plausibly be an order. Cheap gate so blank or symbol-only input
@@ -66,7 +114,11 @@ export function looksLikeOrders(text: string): boolean {
 }
 
 export class PromptTranslator {
-  constructor(private readonly client: ModelClient = openAIClient) {}
+  private readonly client: ModelClient;
+
+  constructor(client?: ModelClient) {
+    this.client = client ?? selectModelClient();
+  }
 
   async translate(gameState: CommanderGameState, side: 'A' | 'B', rawPrompt: unknown): Promise<TranslationResult> {
     const prompt = typeof rawPrompt === 'string' ? rawPrompt.trim().slice(0, MAX_PROMPT_LENGTH) : '';
@@ -83,9 +135,15 @@ export class PromptTranslator {
     try {
       raw = await this.client(messages);
     } catch (error) {
+      if (error instanceof ModelBudgetExhausted) {
+        console.warn(`⚠️ Prompt translation refused for side ${side}: daily model budget used up`);
+        return { commands: [], summary: 'Prompt mode is out of model calls for today; no moves this time.', error: 'budget_exhausted' };
+      }
       console.error(`❌ Prompt translation failed for side ${side}:`, error instanceof Error ? error.message : error);
       return { commands: [], summary: 'Could not reach the model; no moves this time.', error: 'model_error' };
     }
+    // One line per answered model call; the infra stack's spend alarm counts these (keep the marker in sync)
+    console.log(`commander_model_call side=${side}`);
 
     return this.parseResponse(raw, gameState, side);
   }
@@ -135,7 +193,9 @@ export class PromptTranslator {
       }
     }
 
-    const summary = typeof parsed.summary === 'string' ? parsed.summary.slice(0, 200) : '';
-    return { commands: [...byPiece.values()], summary };
+    // The on-screen summary is built from the legal moves, never from model text, so a team can't
+    // steer the model into putting its own words on the big screen
+    const commands = [...byPiece.values()];
+    return { commands, summary: describeCommands(commands) };
   }
 }

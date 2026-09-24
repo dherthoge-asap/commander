@@ -2,29 +2,20 @@ import './style.css';
 import { GameInterface } from './components/GameInterface';
 import './diagnostic';
 
-// Smart WebSocket URL detection (local vs production)
+// WebSocket URL: VITE_WS_URL when set at build time, otherwise the page's own host
+// (the server serves this page and /ws from one origin), or the local dev server on localhost.
+// An access code on the page URL (?code=...) is passed through to the socket.
 const getWebSocketUrl = (): string => {
-  // 🧪 TESTING: Force Railway backend
-  const FORCE_RAILWAY_TEST = false; // Set to true to test Railway deployment
-  const RAILWAY_WS_URL = 'wss://commander-production.up.railway.app/ws';
+  const { protocol, hostname, host, search } = window.location;
+  const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+  const sameOrigin = `${protocol === 'https:' ? 'wss' : 'ws'}://${host}/ws`;
+  const base = import.meta.env.VITE_WS_URL || (isLocal ? 'ws://localhost:9999/ws' : sameOrigin);
 
-  if (FORCE_RAILWAY_TEST) {
-    console.log('✅ Railway backend test ENABLED - connecting to production server');
-    console.log('🚀 Production WebSocket URL:', RAILWAY_WS_URL);
-    return RAILWAY_WS_URL;
-  }
-  console.log('🏠 Using LOCAL backend for development - ws://localhost:9999/ws');
-
-  // Check if running in production (deployed/ChatGPT environment)
-  const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-
-  if (isProduction) {
-    // Production: Use Railway deployment
-    return import.meta.env.VITE_WS_URL || RAILWAY_WS_URL;
-  } else {
-    // Local development
-    return 'ws://localhost:9999/ws';
-  }
+  const code = new URLSearchParams(search).get('code');
+  if (!code) return base;
+  const url = new URL(base);
+  url.searchParams.set('code', code);
+  return url.toString();
 };
 
 // Initialize the game interface

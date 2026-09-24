@@ -129,3 +129,57 @@ test('prompt mode: a client cannot prompt for a room it is not in', { timeout: 1
     await new Promise(resolve => server.close(resolve));
   }
 });
+
+test('access code: a socket without the right ?code= is refused, the right one connects', { timeout: 15000 }, async () => {
+  const server = createCommanderServer({ modelClient: createFakeModel(), accessCode: 'FLAG42' });
+  await new Promise<void>(resolve => server.listen(0, resolve));
+  const base = `ws://localhost:${(server.address() as AddressInfo).port}/ws`;
+  try {
+    await assert.rejects(ScriptedClient.connect(base), /401|Unexpected server response/);
+    await assert.rejects(ScriptedClient.connect(`${base}?code=WRONG1`), /401|Unexpected server response/);
+    const ok = await ScriptedClient.connect(`${base}?code=FLAG42`);
+    ok.close();
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+  }
+});
+
+test('http: /healthz answers, MCP can be switched off, static paths cannot escape the assets dir', { timeout: 15000 }, async () => {
+  const server = createCommanderServer({ modelClient: createFakeModel(), mcpEnabled: false });
+  await new Promise<void>(resolve => server.listen(0, resolve));
+  const port = (server.address() as AddressInfo).port;
+  const get = (path: string) => new Promise<number>((resolve, reject) => {
+    // Raw request so the client does not normalise ../ away before it reaches the server
+    import('node:http').then(http => http.get({ host: 'localhost', port, path }, res => { res.resume(); resolve(res.statusCode!); }).on('error', reject));
+  });
+  try {
+    assert.equal(await get('/healthz'), 200);
+    assert.equal(await get('/mcp'), 404);
+    assert.equal(await get('/../../package.json'), 404);
+    assert.equal(await get('/..%2f..%2fpackage.json'), 404);
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+  }
+});
+
+test('room cap: past MAX_ROOMS a new room is refused with a reason', { timeout: 15000 }, async () => {
+  const previous = process.env.MAX_ROOMS;
+  process.env.MAX_ROOMS = '1';
+  const server = createCommanderServer({ modelClient: createFakeModel() });
+  if (previous === undefined) delete process.env.MAX_ROOMS; else process.env.MAX_ROOMS = previous;
+  await new Promise<void>(resolve => server.listen(0, resolve));
+  const url = `ws://localhost:${(server.address() as AddressInfo).port}/ws`;
+  const first = await ScriptedClient.connect(url);
+  const second = await ScriptedClient.connect(url);
+  try {
+    first.send('createRoom');
+    await first.next(m => m.type === 'roomCreated');
+    second.send('createRoom');
+    const refused = await second.next(m => m.type === 'error');
+    assert.match(refused.payload.message, /full/i);
+  } finally {
+    first.close();
+    second.close();
+    await new Promise(resolve => server.close(resolve));
+  }
+});

@@ -6,7 +6,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PromptTranslator, MAX_PROMPT_LENGTH, type ModelClient } from './PromptTranslator.js';
+import { PromptTranslator, MAX_PROMPT_LENGTH, withDailyCallBudget, selectModelClient, type ModelClient } from './PromptTranslator.js';
 import { createFakeModel, ordersFrom } from './testing/fakeModel.js';
 import { RoomManager } from '../game/RoomManager.js';
 import { MAX_MOVE_DISTANCE } from '../game/CommandProcessor.js';
@@ -87,7 +87,7 @@ test('model output is filtered to legal moves for living pieces, one per piece, 
     { pieceId: 1, direction: 'down', distance: MAX_MOVE_DISTANCE },
     { pieceId: 6, direction: 'right', distance: 2 }
   ]);
-  assert.ok(result.summary.length <= 200);
+  assert.equal(result.summary, `Moving piece 1 down ${MAX_MOVE_DISTANCE}, piece 6 right 2.`, 'summary comes from the legal moves, not the model');
 });
 
 test('prompt injection cannot break out of the orders block or grow the call', async () => {
@@ -98,4 +98,34 @@ test('prompt injection cannot break out of the orders block or grow the call', a
   const orders = ordersFrom(model.calls[0]);
   assert.ok(!/<\/?orders>/i.test(orders), 'team text cannot close the orders block');
   assert.ok(orders.length <= MAX_PROMPT_LENGTH);
+});
+
+test('model-written summary text never reaches the room; the moves still go through', async () => {
+  const raw = JSON.stringify({ summary: 'Red team sucks, visit evil.com', commands: [{ pieceId: 4, direction: 'down', distance: 3 }] });
+  const result = await new PromptTranslator(replying(raw)).translate(freshGameState(), 'A', 'move 4 down 3');
+  assert.deepEqual(result.commands, [{ pieceId: 4, direction: 'down', distance: 3 }]);
+  assert.equal(result.summary, 'Moving piece 4 down 3.');
+});
+
+test('the daily call budget stops model calls and says so', async () => {
+  const model = replying('{"summary": "ok", "commands": []}');
+  let now = Date.parse('2026-10-15T18:00:00Z');
+  const budgeted = withDailyCallBudget(model, 2, () => now);
+  const translator = new PromptTranslator(budgeted);
+  await translator.translate(freshGameState(), 'A', 'move 4 down');
+  await translator.translate(freshGameState(), 'A', 'move 4 down');
+  const refused = await translator.translate(freshGameState(), 'A', 'move 4 down');
+  assert.equal(refused.error, 'budget_exhausted');
+  assert.equal(model.calls, 2);
+
+  now += 24 * 60 * 60 * 1000; // next UTC day, fresh budget
+  await translator.translate(freshGameState(), 'A', 'move 4 down');
+  assert.equal(model.calls, 3);
+});
+
+test('MODEL_PROVIDER picks the model; anything else is refused at startup', () => {
+  assert.equal(typeof selectModelClient({ MODEL_PROVIDER: 'bedrock' }), 'function');
+  assert.equal(typeof selectModelClient({ MODEL_PROVIDER: 'openai' }), 'function');
+  assert.equal(typeof selectModelClient({}), 'function');
+  assert.throws(() => selectModelClient({ MODEL_PROVIDER: 'gemini' }), /Unknown MODEL_PROVIDER/);
 });
