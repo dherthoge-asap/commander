@@ -23,7 +23,7 @@ test('system prompt goes in system, user turn in messages, output forced through
 });
 
 test('the forced tool call comes back as JSON', () => {
-  const input = { summary: 'Piece 4 heads down.', commands: [{ pieceId: 4, direction: 'down', distance: 3 }] };
+  const input = { commands: [{ pieceId: 4, direction: 'down', distance: 3 }] };
   const out = extractOrders({ message: { content: [{ toolUse: { name: ORDERS_TOOL_NAME, input } }] } });
   assert.deepEqual(JSON.parse(out), input);
 });
@@ -38,14 +38,14 @@ test('client sends one Converse call to Haiku 4.5 by default', async () => {
   const sender = {
     async send(command: any) {
       sent.push(command.input);
-      return { output: { message: { content: [{ toolUse: { name: ORDERS_TOOL_NAME, input: { summary: 's', commands: [] } } }] } } };
+      return { output: { message: { content: [{ toolUse: { name: ORDERS_TOOL_NAME, input: { commands: [] } } }] } } };
     },
   };
   const previous = process.env.BEDROCK_MODEL_ID;
   delete process.env.BEDROCK_MODEL_ID;
   try {
     const raw = await createBedrockClient({ sender })(messages);
-    assert.deepEqual(JSON.parse(raw), { summary: 's', commands: [] });
+    assert.deepEqual(JSON.parse(raw), { commands: [] });
     assert.equal(sent.length, 1);
     assert.equal(sent[0].modelId, DEFAULT_BEDROCK_MODEL_ID);
   } finally {

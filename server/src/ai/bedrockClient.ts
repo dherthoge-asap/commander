@@ -27,7 +27,6 @@ const ORDERS_TOOL: ToolConfiguration = {
         json: {
           type: 'object',
           properties: {
-            summary: { type: 'string', description: 'One short sentence describing the moves, in your own words.' },
             commands: {
               type: 'array',
               items: {
@@ -41,7 +40,7 @@ const ORDERS_TOOL: ToolConfiguration = {
               },
             },
           },
-          required: ['summary', 'commands'],
+          required: ['commands'],
         },
       },
     },

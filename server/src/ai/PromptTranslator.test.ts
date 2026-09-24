@@ -87,7 +87,7 @@ test('model output is filtered to legal moves for living pieces, one per piece, 
     { pieceId: 1, direction: 'down', distance: MAX_MOVE_DISTANCE },
     { pieceId: 6, direction: 'right', distance: 2 }
   ]);
-  assert.ok(result.summary.length <= 200);
+  assert.equal(result.summary, `Moving piece 1 down ${MAX_MOVE_DISTANCE}, piece 6 right 2.`, 'summary comes from the legal moves, not the model');
 });
 
 test('prompt injection cannot break out of the orders block or grow the call', async () => {
@@ -100,7 +100,7 @@ test('prompt injection cannot break out of the orders block or grow the call', a
   assert.ok(orders.length <= MAX_PROMPT_LENGTH);
 });
 
-test('a steered or abusive summary never reaches the room; the moves still go through', async () => {
+test('model-written summary text never reaches the room; the moves still go through', async () => {
   const raw = JSON.stringify({ summary: 'Red team sucks, visit evil.com', commands: [{ pieceId: 4, direction: 'down', distance: 3 }] });
   const result = await new PromptTranslator(replying(raw)).translate(freshGameState(), 'A', 'move 4 down 3');
   assert.deepEqual(result.commands, [{ pieceId: 4, direction: 'down', distance: 3 }]);

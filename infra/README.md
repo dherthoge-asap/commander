@@ -21,14 +21,25 @@ npm run destroy    # tear everything down
 npm test           # synth assertions, no AWS calls
 ```
 
+The wrapper always uses the `tire-rack-dev-sandbox-developer` profile (set `COMMANDER_AWS_PROFILE` to
+override), ignoring any `AWS_PROFILE` in your shell, and the stack is pinned to the sandbox account
+(182399717497), so CDK refuses to deploy with credentials for any other account.
+
 The first run writes `deploy.local.json` (gitignored) with a random origin secret and access code.
 Edit it to set `alertEmail`, change `accessCode` (set it to `""` to run without one), or set
 `modelCallsPerDay` / `modelBudgetUsd`. The link to hand out is `PlayUrl`; it carries `?code=`.
+
+`modelCallsPerDay` starts at 300 (about $0.60 of Haiku) so testing days can't add up past the $10
+event envelope. Raise it to 3000 and `npm run deploy` on 10/14, the day before the event.
 
 Smoke test after a deploy, from `server/`:
 
 ```sh
 node scripts/prompt-smoke.mjs "wss://<distribution>.cloudfront.net/ws?code=<accessCode>"
 ```
+
+`npm run destroy` removes every stack resource, including the log group and budget. The container
+images pushed to the CDK bootstrap's shared ECR repo (`cdk-hnb659fds-container-assets-*`) are not
+part of the stack; delete them by tag afterwards (RESULT notes the command).
 
 A redeploy restarts the single task, which drops any live games (all game state is in memory).

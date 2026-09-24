@@ -9,13 +9,17 @@ const ctx = (key: string): string | undefined => app.node.tryGetContext(key) || 
 const originSecret = ctx('originSecret');
 if (!originSecret) throw new Error('Missing -c originSecret=...; run through `npm run synth|deploy|destroy`');
 
+// Pinned: CDK refuses to deploy when the credentials belong to a different account
+const account = ctx('account');
+if (!account) throw new Error('Missing -c account=...; run through `npm run synth|deploy|destroy`');
+
 const stack = new CommanderStack(app, 'Commander', {
-  env: { account: process.env.CDK_DEFAULT_ACCOUNT, region: 'us-east-1' },
+  env: { account, region: 'us-east-1' },
   description: 'Commander game (Remote to TR breakout 10/15/2026): Fargate + ALB + CloudFront, Haiku 4.5 on Bedrock',
   originSecret,
   accessCode: ctx('accessCode'),
   alertEmail: ctx('alertEmail'),
-  modelCallsPerDay: Number(ctx('modelCallsPerDay') ?? 3000),
+  modelCallsPerDay: Number(ctx('modelCallsPerDay') ?? 300),
   modelBudgetUsd: Number(ctx('modelBudgetUsd') ?? 10),
 });
 
