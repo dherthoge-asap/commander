@@ -1,0 +1,309 @@
+- generic [ref=e21]:
+  - generic [ref=e25]:
+    - generic [ref=e26]:
+      - heading "⚔️ COMMANDER ⚔️" [level=2] [ref=e27]
+      - generic [ref=e28]: 🎮 Battle in progress!
+    - generic [ref=e29]:
+      - generic [ref=e30]: "Round: 1"
+      - generic [ref=e31]: "Server: 0m 18s"
+      - generic [ref=e32]: "Next tick: 2.5s"
+    - generic [ref=e34]:
+      - generic [ref=e35]: 🔒 BLUE JAIL
+      - generic [ref=e37]:
+        - generic [ref=e38]: X-AXIS (0-18) →
+        - generic [ref=e39]:
+          - generic [ref=e40]: ← Y (0-12)
+          - generic [ref=e43]:
+            - generic [ref=e44]: "0"
+            - generic [ref=e45]: "1"
+            - generic [ref=e46]: "2"
+            - generic [ref=e47]: "3"
+            - generic [ref=e48]: "4"
+            - generic [ref=e49]: "5"
+            - generic [ref=e50]: "6"
+            - generic [ref=e51]: "7"
+            - generic [ref=e52]: "8"
+            - generic [ref=e53]: "9"
+            - generic [ref=e54]: "10"
+            - generic [ref=e55]: "11"
+            - generic [ref=e56]: "12"
+          - generic [ref=e57]:
+            - generic [ref=e59]:
+              - generic [ref=e60]: "0"
+              - generic [ref=e61]: "1"
+              - generic [ref=e62]: "2"
+              - generic [ref=e63]: "3"
+              - generic [ref=e64]: "4"
+              - generic [ref=e65]: "5"
+              - generic [ref=e66]: "6"
+              - generic [ref=e67]: "7"
+              - generic [ref=e68]: "8"
+              - generic [ref=e69]: "9"
+              - generic [ref=e70]: "10"
+              - generic [ref=e71]: "11"
+              - generic [ref=e72]: "12"
+              - generic [ref=e73]: "13"
+              - generic [ref=e74]: "14"
+              - generic [ref=e75]: "15"
+              - generic [ref=e76]: "16"
+              - generic [ref=e77]: "17"
+              - generic [ref=e78]: "18"
+            - generic [ref=e79]:
+              - generic [ref=e80] [cursor=pointer]
+              - generic [ref=e81] [cursor=pointer]
+              - generic [ref=e82] [cursor=pointer]
+              - generic [ref=e83] [cursor=pointer]
+              - generic [ref=e84] [cursor=pointer]
+              - generic [ref=e85] [cursor=pointer]
+              - generic [ref=e86] [cursor=pointer]
+              - generic [ref=e87] [cursor=pointer]
+              - generic [ref=e88] [cursor=pointer]
+              - generic [ref=e89] [cursor=pointer]:
+                - generic "Red Flag - Capture and bring to your territory!": 🚩
+              - generic [ref=e90] [cursor=pointer]
+              - generic [ref=e91] [cursor=pointer]
+              - generic [ref=e92] [cursor=pointer]
+              - generic [ref=e93] [cursor=pointer]
+              - generic [ref=e94] [cursor=pointer]
+              - generic [ref=e95] [cursor=pointer]
+              - generic [ref=e96] [cursor=pointer]
+              - generic [ref=e97] [cursor=pointer]
+              - generic [ref=e98] [cursor=pointer]
+              - generic [ref=e99] [cursor=pointer]
+              - generic [ref=e100] [cursor=pointer]
+              - generic [ref=e101] [cursor=pointer]
+              - generic [ref=e102] [cursor=pointer]
+              - generic [ref=e103] [cursor=pointer]
+              - generic [ref=e104] [cursor=pointer]
+              - generic [ref=e105] [cursor=pointer]
+              - generic [ref=e106] [cursor=pointer]
+              - generic [ref=e107] [cursor=pointer]
+              - generic [ref=e108] [cursor=pointer]
+              - generic [ref=e109] [cursor=pointer]
+              - generic [ref=e110] [cursor=pointer]
+              - generic [ref=e111] [cursor=pointer]
+              - generic [ref=e112] [cursor=pointer]
+              - generic [ref=e113] [cursor=pointer]
+              - generic [ref=e114] [cursor=pointer]
+              - generic [ref=e115] [cursor=pointer]
+              - generic [ref=e116] [cursor=pointer]
+              - generic [ref=e117] [cursor=pointer]
+              - generic [ref=e118] [cursor=pointer]
+              - generic [ref=e119] [cursor=pointer]
+              - generic [ref=e120] [cursor=pointer]
+              - generic [ref=e121] [cursor=pointer]
+              - generic [ref=e122] [cursor=pointer]
+              - generic [ref=e123] [cursor=pointer]
+              - generic [ref=e124] [cursor=pointer]: "1"
+              - generic [ref=e126] [cursor=pointer]: "2"
+              - generic [ref=e128] [cursor=pointer]: "3"
+              - generic [ref=e130] [cursor=pointer]: "4"
+              - generic [ref=e132] [cursor=pointer]: "5"
+              - generic [ref=e134] [cursor=pointer]: "6"
+              - generic [ref=e136] [cursor=pointer]: "7"
+              - generic [ref=e138] [cursor=pointer]
+              - generic [ref=e139] [cursor=pointer]
+              - generic [ref=e140] [cursor=pointer]
+              - generic [ref=e141] [cursor=pointer]
+              - generic [ref=e142] [cursor=pointer]
+              - generic [ref=e143] [cursor=pointer]
+              - generic [ref=e144] [cursor=pointer]
+              - generic [ref=e145] [cursor=pointer]
+              - generic [ref=e146] [cursor=pointer]
+              - generic [ref=e147] [cursor=pointer]
+              - generic [ref=e148] [cursor=pointer]
+              - generic [ref=e149] [cursor=pointer]
+              - generic [ref=e150] [cursor=pointer]
+              - generic [ref=e151] [cursor=pointer]
+              - generic [ref=e152] [cursor=pointer]
+              - generic [ref=e153] [cursor=pointer]
+              - generic [ref=e154] [cursor=pointer]
+              - generic [ref=e155] [cursor=pointer]
+              - generic [ref=e156] [cursor=pointer]
+              - generic [ref=e157] [cursor=pointer]
+              - generic [ref=e158] [cursor=pointer]
+              - generic [ref=e159] [cursor=pointer]
+              - generic [ref=e160] [cursor=pointer]
+              - generic [ref=e161] [cursor=pointer]
+              - generic [ref=e162] [cursor=pointer]
+              - generic [ref=e163] [cursor=pointer]
+              - generic [ref=e164] [cursor=pointer]
+              - generic [ref=e165] [cursor=pointer]
+              - generic [ref=e166] [cursor=pointer]
+              - generic [ref=e167] [cursor=pointer]
+              - generic [ref=e168] [cursor=pointer]
+              - generic [ref=e169] [cursor=pointer]
+              - generic [ref=e170] [cursor=pointer]
+              - generic [ref=e171] [cursor=pointer]
+              - generic [ref=e172] [cursor=pointer]
+              - generic [ref=e173] [cursor=pointer]
+              - generic [ref=e174] [cursor=pointer]
+              - generic [ref=e175] [cursor=pointer]
+              - generic [ref=e176] [cursor=pointer]
+              - generic [ref=e177] [cursor=pointer]
+              - generic [ref=e178] [cursor=pointer]
+              - generic [ref=e179] [cursor=pointer]
+              - generic [ref=e180] [cursor=pointer]
+              - generic [ref=e181] [cursor=pointer]
+              - generic [ref=e182] [cursor=pointer]
+              - generic [ref=e183] [cursor=pointer]
+              - generic [ref=e184] [cursor=pointer]
+              - generic [ref=e185] [cursor=pointer]
+              - generic [ref=e186] [cursor=pointer]
+              - generic [ref=e187] [cursor=pointer]
+              - generic [ref=e188] [cursor=pointer]
+              - generic [ref=e189] [cursor=pointer]
+              - generic [ref=e190] [cursor=pointer]
+              - generic [ref=e191] [cursor=pointer]
+              - generic [ref=e192] [cursor=pointer]
+              - generic [ref=e193] [cursor=pointer]
+              - generic [ref=e194] [cursor=pointer]
+              - generic [ref=e195] [cursor=pointer]
+              - generic [ref=e196] [cursor=pointer]
+              - generic [ref=e197] [cursor=pointer]
+              - generic [ref=e198] [cursor=pointer]
+              - generic [ref=e199] [cursor=pointer]
+              - generic [ref=e200] [cursor=pointer]
+              - generic [ref=e201] [cursor=pointer]
+              - generic [ref=e202] [cursor=pointer]
+              - generic [ref=e203] [cursor=pointer]
+              - generic [ref=e204] [cursor=pointer]
+              - generic [ref=e205] [cursor=pointer]
+              - generic [ref=e206] [cursor=pointer]
+              - generic [ref=e207] [cursor=pointer]
+              - generic [ref=e208] [cursor=pointer]
+              - generic [ref=e209] [cursor=pointer]
+              - generic [ref=e210] [cursor=pointer]
+              - generic [ref=e211] [cursor=pointer]
+              - generic [ref=e212] [cursor=pointer]
+              - generic [ref=e213] [cursor=pointer]
+              - generic [ref=e214] [cursor=pointer]
+              - generic [ref=e215] [cursor=pointer]
+              - generic [ref=e216] [cursor=pointer]
+              - generic [ref=e217] [cursor=pointer]
+              - generic [ref=e218] [cursor=pointer]
+              - generic [ref=e219] [cursor=pointer]
+              - generic [ref=e220] [cursor=pointer]
+              - generic [ref=e221] [cursor=pointer]
+              - generic [ref=e222] [cursor=pointer]
+              - generic [ref=e223] [cursor=pointer]
+              - generic [ref=e224] [cursor=pointer]
+              - generic [ref=e225] [cursor=pointer]
+              - generic [ref=e226] [cursor=pointer]
+              - generic [ref=e227] [cursor=pointer]
+              - generic [ref=e228] [cursor=pointer]
+              - generic [ref=e229] [cursor=pointer]
+              - generic [ref=e230] [cursor=pointer]
+              - generic [ref=e231] [cursor=pointer]
+              - generic [ref=e232] [cursor=pointer]
+              - generic [ref=e233] [cursor=pointer]
+              - generic [ref=e234] [cursor=pointer]
+              - generic [ref=e235] [cursor=pointer]
+              - generic [ref=e236] [cursor=pointer]
+              - generic [ref=e237] [cursor=pointer]
+              - generic [ref=e238] [cursor=pointer]
+              - generic [ref=e239] [cursor=pointer]
+              - generic [ref=e240] [cursor=pointer]
+              - generic [ref=e241] [cursor=pointer]
+              - generic [ref=e242] [cursor=pointer]
+              - generic [ref=e243] [cursor=pointer]
+              - generic [ref=e244] [cursor=pointer]
+              - generic [ref=e245] [cursor=pointer]
+              - generic [ref=e246] [cursor=pointer]
+              - generic [ref=e247] [cursor=pointer]
+              - generic [ref=e248] [cursor=pointer]
+              - generic [ref=e249] [cursor=pointer]
+              - generic [ref=e250] [cursor=pointer]
+              - generic [ref=e251] [cursor=pointer]
+              - generic [ref=e252] [cursor=pointer]
+              - generic [ref=e253] [cursor=pointer]
+              - generic [ref=e254] [cursor=pointer]
+              - generic [ref=e255] [cursor=pointer]
+              - generic [ref=e256] [cursor=pointer]
+              - generic [ref=e257] [cursor=pointer]
+              - generic [ref=e258] [cursor=pointer]
+              - generic [ref=e259] [cursor=pointer]
+              - generic [ref=e260] [cursor=pointer]
+              - generic [ref=e261] [cursor=pointer]
+              - generic [ref=e262] [cursor=pointer]
+              - generic [ref=e263] [cursor=pointer]
+              - generic [ref=e264] [cursor=pointer]
+              - generic [ref=e265] [cursor=pointer]
+              - generic [ref=e266] [cursor=pointer]
+              - generic [ref=e267] [cursor=pointer]
+              - generic [ref=e268] [cursor=pointer]
+              - generic [ref=e269] [cursor=pointer]
+              - generic [ref=e270] [cursor=pointer]
+              - generic [ref=e271] [cursor=pointer]
+              - generic [ref=e272] [cursor=pointer]
+              - generic [ref=e273] [cursor=pointer]
+              - generic [ref=e274] [cursor=pointer]
+              - generic [ref=e275] [cursor=pointer]
+              - generic [ref=e276] [cursor=pointer]
+              - generic [ref=e277] [cursor=pointer]
+              - generic [ref=e278] [cursor=pointer]
+              - generic [ref=e279] [cursor=pointer]
+              - generic [ref=e280] [cursor=pointer]
+              - generic [ref=e281] [cursor=pointer]
+              - generic [ref=e282] [cursor=pointer]
+              - generic [ref=e283] [cursor=pointer]: "1"
+              - generic [ref=e285] [cursor=pointer]: "2"
+              - generic [ref=e287] [cursor=pointer]: "3"
+              - generic [ref=e289] [cursor=pointer]: "4"
+              - generic [ref=e291] [cursor=pointer]: "5"
+              - generic [ref=e293] [cursor=pointer]: "6"
+              - generic [ref=e295] [cursor=pointer]: "7"
+              - generic [ref=e297] [cursor=pointer]
+              - generic [ref=e298] [cursor=pointer]
+              - generic [ref=e299] [cursor=pointer]
+              - generic [ref=e300] [cursor=pointer]
+              - generic [ref=e301] [cursor=pointer]
+              - generic [ref=e302] [cursor=pointer]
+              - generic [ref=e303] [cursor=pointer]
+              - generic [ref=e304] [cursor=pointer]
+              - generic [ref=e305] [cursor=pointer]
+              - generic [ref=e306] [cursor=pointer]
+              - generic [ref=e307] [cursor=pointer]
+              - generic [ref=e308] [cursor=pointer]
+              - generic [ref=e309] [cursor=pointer]
+              - generic [ref=e310] [cursor=pointer]
+              - generic [ref=e311] [cursor=pointer]
+              - generic [ref=e312] [cursor=pointer]
+              - generic [ref=e313] [cursor=pointer]
+              - generic [ref=e314] [cursor=pointer]
+              - generic [ref=e315] [cursor=pointer]
+              - generic [ref=e316] [cursor=pointer]
+              - generic [ref=e317] [cursor=pointer]
+              - generic [ref=e318] [cursor=pointer]
+              - generic [ref=e319] [cursor=pointer]
+              - generic [ref=e320] [cursor=pointer]
+              - generic [ref=e321] [cursor=pointer]
+              - generic [ref=e322] [cursor=pointer]
+              - generic [ref=e323] [cursor=pointer]
+              - generic [ref=e324] [cursor=pointer]
+              - generic [ref=e325] [cursor=pointer]
+              - generic [ref=e326] [cursor=pointer]
+              - generic [ref=e327] [cursor=pointer]
+              - generic [ref=e328] [cursor=pointer]
+              - generic [ref=e329] [cursor=pointer]
+              - generic [ref=e330] [cursor=pointer]
+              - generic [ref=e331] [cursor=pointer]:
+                - generic "Blue Flag - Capture and bring to your territory!": 🚩
+              - generic [ref=e332] [cursor=pointer]
+              - generic [ref=e333] [cursor=pointer]
+              - generic [ref=e334] [cursor=pointer]
+              - generic [ref=e335] [cursor=pointer]
+              - generic [ref=e336] [cursor=pointer]
+              - generic [ref=e337] [cursor=pointer]
+              - generic [ref=e338] [cursor=pointer]
+              - generic [ref=e339] [cursor=pointer]
+              - generic [ref=e340] [cursor=pointer]
+      - generic [ref=e341]: 🔒 RED JAIL
+    - generic [ref=e343]:
+      - generic [ref=e344]:
+        - generic [ref=e345]: 📋 YOUR COMMANDS
+        - generic [ref=e346]: No commands queued
+      - generic [ref=e347]:
+        - generic [ref=e348]: 📊 BOARD EVALUATION
+        - generic [ref=e349]: No evaluation data yet...
+  - button "Leave Game" [ref=e351] [cursor=pointer]

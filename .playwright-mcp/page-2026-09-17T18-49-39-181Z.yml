@@ -1,0 +1,13 @@
+- generic [ref=e4]:
+  - generic [ref=e5]:
+    - heading "🎮 Movement Commander" [level=1] [ref=e6]
+    - paragraph [ref=e7]: Real-time strategy battles await!
+  - generic [ref=e8]:
+    - generic [ref=e9]: Connected! Loading games...
+    - generic [ref=e11]:
+      - button "+ Create New Game" [ref=e12] [cursor=pointer]
+      - generic [ref=e13]: or
+      - button "🤖 Play vs AI" [ref=e14] [cursor=pointer]
+    - generic [ref=e15]:
+      - heading "🎯 Available Games" [level=3] [ref=e16]
+      - generic [ref=e17]: Loading available games...

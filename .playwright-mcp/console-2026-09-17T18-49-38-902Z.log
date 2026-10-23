@@ -1,0 +1,66 @@
+[     197ms] [LOG] ✅ Same-team collision fix: teammates can move through each other - v6 @ http://localhost:3456/src/components/BattleArena.ts:3
+[     198ms] [LOG] 🔧 Diagnostics loaded. Run in console: @ http://localhost:3456/src/diagnostic.ts:74
+[     198ms] [LOG]    diagnosePiecePositions()  - Run diagnostic now @ http://localhost:3456/src/diagnostic.ts:75
+[     198ms] [LOG]    enableAutoDiagnostics()   - Auto-run every round @ http://localhost:3456/src/diagnostic.ts:76
+[     198ms] [LOG] 🏠 Using LOCAL backend for development - ws://localhost:9999/ws @ http://localhost:3456/src/main.ts:11
+[     198ms] [LOG] 🔌 Connecting to WebSocket: ws://localhost:9999/ws @ http://localhost:3456/src/main.ts:20
+[     198ms] [LOG] 🎯 TEST LOG: If you can see this in your terminal, console monitoring works! @ http://localhost:3456/src/main.ts:21
+[     243ms] [LOG] Connected to Movement Commander server @ http://localhost:3456/src/components/GameInterface.ts:97
+[    5132ms] [LOG] 🤖 AI BUTTON CLICKED! @ http://localhost:3456/src/components/GameInterface.ts:181
+[    5132ms] [LOG] ✅ Sending createAIRoom message to server... @ http://localhost:3456/src/components/GameInterface.ts:187
+[    5132ms] [LOG] 📤 createAIRoom message sent! @ http://localhost:3456/src/components/GameInterface.ts:194
+[    5141ms] [LOG] ✅ AnimationController initialized - refactored code is running! @ http://localhost:3456/src/components/AnimationController.ts:5
+[    5141ms] [LOG] ✅ BoardRenderer initialized - refactored code is running! @ http://localhost:3456/src/components/BoardRenderer.ts:4
+[    5141ms] [LOG] ✅ No-guard zone now uses dynamic bounds from game state - v4 @ http://localhost:3456/src/components/DragDropHandler.ts:18
+[    5143ms] [LOG] ✅ Dynamic board dimensions: 19x13, 7 pieces per team @ http://localhost:3456/src/components/BattleArena.ts:255
+[    5144ms] [LOG] 🔍 P5 RENDER: A P5 → cell-10-10 | Backend says: (10, 10) @ http://localhost:3456/src/components/BattleArena.ts:430
+[    5144ms] [LOG] ✅ P5 DOM: Found cell, appending piece element @ http://localhost:3456/src/components/BattleArena.ts:440
+[    5145ms] [LOG] 🔴 RED PIECES FROM BACKEND: @ http://localhost:3456/src/components/BattleArena.ts:402
+[    5145ms] [LOG]    B P1: (6, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    5145ms] [LOG]    B P2: (7, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    5145ms] [LOG]    B P3: (8, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    5145ms] [LOG]    B P4: (9, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    5145ms] [LOG]    B P5: (10, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    5145ms] [LOG]    B P6: (11, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    5145ms] [LOG]    B P7: (12, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    5145ms] [LOG] 🔍 P5 RENDER: B P5 → cell-10-2 | Backend says: (10, 2) @ http://localhost:3456/src/components/BattleArena.ts:430
+[    5145ms] [LOG] ✅ P5 DOM: Found cell, appending piece element @ http://localhost:3456/src/components/BattleArena.ts:440
+[    5316ms] [LOG] ✅ Dynamic board dimensions: 19x13, 7 pieces per team @ http://localhost:3456/src/components/BattleArena.ts:255
+[    5318ms] [LOG] 🔍 P5 RENDER: A P5 → cell-10-10 | Backend says: (10, 10) @ http://localhost:3456/src/components/BattleArena.ts:430
+[    5318ms] [LOG] ✅ P5 DOM: Found cell, appending piece element @ http://localhost:3456/src/components/BattleArena.ts:440
+[    5318ms] [LOG] 🔴 RED PIECES FROM BACKEND: @ http://localhost:3456/src/components/BattleArena.ts:402
+[    5318ms] [LOG]    B P1: (6, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    5318ms] [LOG]    B P2: (7, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    5318ms] [LOG]    B P3: (8, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    5318ms] [LOG]    B P4: (9, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    5318ms] [LOG]    B P5: (10, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    5318ms] [LOG]    B P6: (11, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    5318ms] [LOG]    B P7: (12, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    5318ms] [LOG] 🔍 P5 RENDER: B P5 → cell-10-2 | Backend says: (10, 2) @ http://localhost:3456/src/components/BattleArena.ts:430
+[    5318ms] [LOG] ✅ P5 DOM: Found cell, appending piece element @ http://localhost:3456/src/components/BattleArena.ts:440
+[    8405ms] [LOG] ✅ Dynamic board dimensions: 19x13, 7 pieces per team @ http://localhost:3456/src/components/BattleArena.ts:255
+[    8407ms] [LOG] 🔍 P5 RENDER: A P5 → cell-10-10 | Backend says: (10, 10) @ http://localhost:3456/src/components/BattleArena.ts:430
+[    8407ms] [LOG] ✅ P5 DOM: Found cell, appending piece element @ http://localhost:3456/src/components/BattleArena.ts:440
+[    8407ms] [LOG] 🔴 RED PIECES FROM BACKEND: @ http://localhost:3456/src/components/BattleArena.ts:402
+[    8407ms] [LOG]    B P1: (6, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    8407ms] [LOG]    B P2: (7, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    8407ms] [LOG]    B P3: (8, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    8407ms] [LOG]    B P4: (9, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    8407ms] [LOG]    B P5: (10, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    8407ms] [LOG]    B P6: (11, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    8407ms] [LOG]    B P7: (12, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[    8407ms] [LOG] 🔍 P5 RENDER: B P5 → cell-10-2 | Backend says: (10, 2) @ http://localhost:3456/src/components/BattleArena.ts:430
+[    8407ms] [LOG] ✅ P5 DOM: Found cell, appending piece element @ http://localhost:3456/src/components/BattleArena.ts:440
+[   11433ms] [LOG] ✅ Dynamic board dimensions: 19x13, 7 pieces per team @ http://localhost:3456/src/components/BattleArena.ts:255
+[   11436ms] [LOG] 🔍 P5 RENDER: A P5 → cell-10-10 | Backend says: (10, 10) @ http://localhost:3456/src/components/BattleArena.ts:430
+[   11436ms] [LOG] ✅ P5 DOM: Found cell, appending piece element @ http://localhost:3456/src/components/BattleArena.ts:440
+[   11436ms] [LOG] 🔴 RED PIECES FROM BACKEND: @ http://localhost:3456/src/components/BattleArena.ts:402
+[   11436ms] [LOG]    B P1: (6, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[   11436ms] [LOG]    B P2: (7, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[   11436ms] [LOG]    B P3: (8, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[   11436ms] [LOG]    B P4: (9, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[   11436ms] [LOG]    B P5: (10, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[   11436ms] [LOG]    B P6: (11, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[   11436ms] [LOG]    B P7: (12, 2) alive: true @ http://localhost:3456/src/components/BattleArena.ts:404
+[   11436ms] [LOG] 🔍 P5 RENDER: B P5 → cell-10-2 | Backend says: (10, 2) @ http://localhost:3456/src/components/BattleArena.ts:430
+[   11436ms] [LOG] ✅ P5 DOM: Found cell, appending piece element @ http://localhost:3456/src/components/BattleArena.ts:440
